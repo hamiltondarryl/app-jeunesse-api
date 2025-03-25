@@ -11,6 +11,9 @@ CREATE TABLE "User" (
     "username" TEXT,
     "password" TEXT NOT NULL,
     "roleId" TEXT NOT NULL,
+    "passwordIsRest" BOOLEAN NOT NULL DEFAULT false,
+    "firstConnection" BOOLEAN NOT NULL DEFAULT true,
+    "fcmToken" TEXT,
     "activated" BOOLEAN NOT NULL DEFAULT false,
     "candidatId" TEXT,
     "juryMembreId" TEXT,
@@ -18,6 +21,16 @@ CREATE TABLE "User" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "PasswordReset" (
+    "id" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "PasswordReset_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -177,6 +190,12 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "PasswordReset_email_key" ON "PasswordReset"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "PasswordReset_email_code_key" ON "PasswordReset"("email", "code");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");

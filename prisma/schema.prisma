@@ -20,6 +20,8 @@ enum ActionType {
   PASSWORD_RESET // Réinitialisation du mot de passe
   PASSWORD_CHANGE // Modification du mot de passe
   FORGOT_PASSWORD // Demande de réinitialisation du mot de passe
+  ACCOUNT_CREATED // Creation du compte 
+  ACCOUNT_ACTIVATION // Actived du compte
 }
 
 enum StatutCandidature {
@@ -29,20 +31,30 @@ enum StatutCandidature {
 }
 
 model User {
-  id           String        @id @default(uuid())
-  email        String        @unique
-  username     String?       @unique
-  password     String
-  roleId       String
-  activated    Boolean       @default(false)
-  role         Role          @relation(fields: [roleId], references: [id])
-  candidatId   String? // Référence à Candidat, si applicable
-  juryMembreId String? // Référence à JuryMembre, si applicable
-  candidat     Candidat?
-  jury         JuryMembre?
-  ActivityLog  ActivityLog[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id             String        @id @default(uuid())
+  email          String        @unique
+  username       String?       @unique
+  password       String
+  roleId         String
+  passwordIsRest Boolean        @default(false)
+  fcmToken  String?
+  activated      Boolean       @default(false)
+  role           Role          @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  candidatId     String? // Référence à Candidat, si applicable
+  juryMembreId   String? // Référence à JuryMembre, si applicable
+  candidat       Candidat?
+  jury           JuryMembre?
+  ActivityLog    ActivityLog[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  code      String
+  expiresAt DateTime
+  @@unique([email, code])
 }
 
 model Role {
@@ -64,40 +76,42 @@ model Permission {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
-model TypeCandidat{
-  id          String       @id @default(uuid())
-  name        String       @unique
+
+model TypeCandidat {
+  id          String     @id @default(uuid())
+  name        String     @unique
   description String?
-  candidats Candidat[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  candidats   Candidat[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
+
 model Groupe {
-  id        Int        @id @default(autoincrement())
-  name      String     @unique
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
   description String?
-  candidats Candidat[] // Relation un-à-plusieurs avec Candidat
-  Category  Category[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  candidats   Candidat[] // Relation un-à-plusieurs avec Candidat
+  Category    Category[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 model Candidat {
-  id           String        @id @default(uuid())
-  user         User          @relation(fields: [userId], references: [id])
-  userId       String        @unique
+  id             String        @id @default(uuid())
+  user           User          @relation(fields: [userId], references: [id])
+  userId         String        @unique
   typeCandidatId String
-  typeCandidat TypeCandidat @relation(fields: [typeCandidatId], references: [id])
-  groupeId     Int // Référence au groupe
-  groupe       Groupe        @relation(fields: [groupeId], references: [id])
-  candidatures Candidature[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  typeCandidat   TypeCandidat  @relation(fields: [typeCandidatId], references: [id], onDelete: Restrict)
+  groupeId       Int // Référence au groupe
+  groupe         Groupe        @relation(fields: [groupeId], references: [id], onDelete: Restrict)
+  candidatures   Candidature[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 }
 
 model Candidature {
   id          String            @id @default(uuid())
-  candidat    Candidat          @relation(fields: [candidatId], references: [id])
+  candidat    Candidat          @relation(fields: [candidatId], references: [id], onDelete: Restrict)
   candidatId  String
   edition     Edition           @relation(fields: [editionId], references: [id])
   editionId   String
@@ -125,7 +139,7 @@ model Category {
   id           String        @id @default(uuid())
   nom          String
   groupeId     Int // Référence au groupe
-  groupe       Groupe        @relation(fields: [groupeId], references: [id])
+  groupe       Groupe        @relation(fields: [groupeId], references: [id], onDelete: Restrict)
   candidatures Candidature[]
 }
 
@@ -138,9 +152,9 @@ model Jury {
 
 model JuryMembre {
   id        String     @id @default(uuid())
-  user      User       @relation(fields: [userId], references: [id])
+  user      User       @relation(fields: [userId], references: [id], onDelete: Restrict)
   userId    String     @unique
-  jury      Jury       @relation(fields: [juryId], references: [id])
+  jury      Jury       @relation(fields: [juryId], references: [id], onDelete: Restrict)
   juryId    String
   notations Notation[] // Chaque membre du jury a plusieurs notations
   createdAt DateTime   @default(now())
@@ -149,9 +163,9 @@ model JuryMembre {
 
 model Notation {
   id            String       @id @default(uuid())
-  jury          Jury         @relation(fields: [juryId], references: [id])
+  jury          Jury         @relation(fields: [juryId], references: [id], onDelete: Restrict)
   juryId        String
-  candidature   Candidature  @relation(fields: [candidatureId], references: [id])
+  candidature   Candidature  @relation(fields: [candidatureId], references: [id], onDelete: Restrict)
   candidatureId String
   note          Int
   commentaire   String?
@@ -165,6 +179,6 @@ model ActivityLog {
   action      ActionType // Type d'action
   description String? // Détails sur l'action
   userId      String? // ID de l'utilisateur ayant effectué l'action
-  user        User?      @relation(fields: [userId], references: [id]) // Relation avec le modèle User
+  user        User?      @relation(fields: [userId], references: [id], onDelete: Restrict) // Relation avec le modèle User
   createdAt   DateTime   @default(now()) // Date de l'action
 }

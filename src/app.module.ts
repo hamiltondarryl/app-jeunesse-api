@@ -6,6 +6,12 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from './prisma/prisma.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { UserModule } from './user/user.module';
+import { RoleModule } from './role/role.module';
+import { PermissionModule } from './permission/permission.module';
+import { ActivityLogModule } from './activity-log/activity-log.module';
+import { EditionModule } from './edition/edition.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -37,6 +43,12 @@ import { MailerModule } from '@nestjs-modules/mailer';
         secure: false,
       },
     }),
+    UserModule,
+    RoleModule,
+    PermissionModule,
+    ActivityLogModule,
+    EditionModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

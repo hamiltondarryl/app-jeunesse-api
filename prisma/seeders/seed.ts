@@ -16,6 +16,13 @@ async function main() {
     },
   });
 
+  const log = await prisma.permission.create({
+    data: {
+      name: "LOG",
+      description: "Histotrique des action d'un utilisateur",
+    },
+  });
+
   const accesAppMobile = await prisma.permission.create({
     data: {
       name: "ACCESS_APP_MOBILE",
@@ -170,9 +177,11 @@ async function main() {
     data: {
       name: "Admin",
       code: "ADMIN",
+      description : "Il administre la plateform sans avoir acces à la partie metier",
       permissions: {
         connect: [
-          { id: accesApp.id, },
+          { id: accesApp.id },
+          { id: log.id },
           { id: dashboardAdmin.id },
           { id: createUser.id },
           { id: readUser.id },
@@ -199,9 +208,11 @@ async function main() {
     data: {
       name: "Gestionnaire",
       code: "GESTION",
+      description : "Il administre la plateform avec les permissions necessaires",
       permissions: {
         connect: [
           { id: accesApp.id },
+          { id: log.id },
           { id: accesAppMobile.id },
           { id: dashboardAdmin.id },
           { id: createUser.id },
@@ -218,9 +229,11 @@ async function main() {
     data: {
       name: "Membre de jury",
       code: "JURY",
+      description : "Il évalue les candidats",
       permissions: {
         connect: [
           { id: accesAppMobile.id },
+          { id: log.id },
           { id: noterCandidat.id },
           { id: consulterResultat.id },
         ],
@@ -232,9 +245,11 @@ async function main() {
     data: {
       name: "Simple utilisateur",
       code: "SIMPLE_USER",
+      description : "Il candidate aux differents categories",
       permissions: {
         connect: [
           { id: accesAppMobile.id },
+          { id: log.id }, 
           { id: consulterResultat.id },
         ],
       },
@@ -250,6 +265,18 @@ async function main() {
       password: defaultPassword, // Hash le mot de passe en production !
       role: {
         connect: { id: adminRole.id },
+      },
+    },
+  });
+
+  const gestionaireUser = await prisma.user.create({
+    data: {
+      email: "darryl24@gmail.com",
+      username: "BOULINGUI Darryl",
+      activated: true,
+      password: defaultPassword, // Hash le mot de passe en production !
+      role: {
+        connect: { id: gestionaire.id },
       },
     },
   });

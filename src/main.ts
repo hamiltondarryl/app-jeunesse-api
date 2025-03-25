@@ -13,6 +13,7 @@ import * as process from 'process';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
+  app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe())
   app.use(helmet());
   if (process.env.APP_STATUS == "DEV") {
@@ -21,7 +22,7 @@ async function bootstrap() {
       .setTitle('DIWA - API')
       .setDescription('API(s) pour la gestion des données de DIWA')
       .setVersion('1.0')
-      .addTag('DIWA')
+      .addTag('DIWA - Documentation')
       .addBearerAuth(
         { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
         'access-token',
