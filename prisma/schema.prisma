@@ -23,11 +23,16 @@ enum ActionType {
   ACCOUNT_CREATED // Creation du compte 
   ACCOUNT_ACTIVATION // Actived du compte
 }
+enum TypeOSC {
+  ONG
+  Association
+  Coopérative
+  Autre
+}
 
-enum StatutCandidature {
-  EN_ATTENTE
-  ACCEPTEE
-  REJETEE
+enum Sexe {
+  Masculin
+  Féminin
 }
 
 model User {
@@ -36,14 +41,10 @@ model User {
   username       String?       @unique
   password       String
   roleId         String
-  passwordIsRest Boolean        @default(false)
-  fcmToken  String?
+  passwordIsRest Boolean       @default(false)
+  fcmToken       String?
   activated      Boolean       @default(false)
   role           Role          @relation(fields: [roleId], references: [id], onDelete: Restrict)
-  candidatId     String? // Référence à Candidat, si applicable
-  juryMembreId   String? // Référence à JuryMembre, si applicable
-  candidat       Candidat?
-  jury           JuryMembre?
   ActivityLog    ActivityLog[]
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
@@ -54,6 +55,7 @@ model PasswordReset {
   email     String   @unique
   code      String
   expiresAt DateTime
+
   @@unique([email, code])
 }
 
@@ -77,101 +79,62 @@ model Permission {
   updatedAt   DateTime @updatedAt
 }
 
-model TypeCandidat {
-  id          String     @id @default(uuid())
-  name        String     @unique
-  description String?
-  candidats   Candidat[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+
+model Organisation {
+  id                 String       @id @default(uuid())
+  nom                String
+  sigle              String?
+  type               String?
+  anneeCreation      Int?
+  agrementTechnique  Boolean
+  adresse            String?
+  commune            String?
+  international      Boolean
+  groupes            Int?
+  adherents          Int?
+  hommes             Int?
+  femmes             Int?
+  salaries           Int?
+  benevoles          Int?
+  cotisationMensuelle Float?
+  partenaires        Boolean
+  but                String?
+  publicCible        String?
+  zones              String[]
+  responsable        Responsable? @relation(fields: [responsableId], references: [id])
+  responsableId      String?
+  domaines           Domaine[]    @relation("OrganisationDomaines")
+  contacts           Contact[]
+  provinces  Province[]  @relation("OrganisationProvinces")
+  createdAt          DateTime     @default(now())
 }
 
-model Groupe {
-  id          Int        @id @default(autoincrement())
-  name        String     @unique
-  description String?
-  candidats   Candidat[] // Relation un-à-plusieurs avec Candidat
-  Category    Category[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+model Responsable {
+  id           String         @id @default(uuid())
+  nom          String         @unique
+  age          Int?
+  nationalite  String?
+  situation    String?
+  telephone    String?
+  email        String?
+  adresse      String?
+  organisation Organisation[]
 }
 
-model Candidat {
-  id             String        @id @default(uuid())
-  user           User          @relation(fields: [userId], references: [id])
-  userId         String        @unique
-  typeCandidatId String
-  typeCandidat   TypeCandidat  @relation(fields: [typeCandidatId], references: [id], onDelete: Restrict)
-  groupeId       Int // Référence au groupe
-  groupe         Groupe        @relation(fields: [groupeId], references: [id], onDelete: Restrict)
-  candidatures   Candidature[]
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+
+model Domaine {
+  id             String         @id @default(uuid())
+  nom            String         @unique
+  organisations  Organisation[] @relation("OrganisationDomaines")
 }
 
-model Candidature {
-  id          String            @id @default(uuid())
-  candidat    Candidat          @relation(fields: [candidatId], references: [id], onDelete: Restrict)
-  candidatId  String
-  edition     Edition           @relation(fields: [editionId], references: [id])
-  editionId   String
-  category    Category          @relation(fields: [categoryId], references: [id])
-  categoryId  String
-  documentUrl String?
-  description String
-  moyenneNote Float?            @default(0)
-  statut      StatutCandidature @default(EN_ATTENTE)
-  notations   Notation[]
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-}
-
-model Edition {
-  id           String        @id @default(uuid())
-  year         Int           @unique
-  activated    Boolean       @default(false)
-  candidatures Candidature[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-}
-
-model Category {
-  id           String        @id @default(uuid())
-  nom          String
-  groupeId     Int // Référence au groupe
-  groupe       Groupe        @relation(fields: [groupeId], references: [id], onDelete: Restrict)
-  candidatures Candidature[]
-}
-
-model Jury {
-  id        String       @id @default(uuid())
-  name      String
-  membres   JuryMembre[]
-  notations Notation[]
-}
-
-model JuryMembre {
-  id        String     @id @default(uuid())
-  user      User       @relation(fields: [userId], references: [id], onDelete: Restrict)
-  userId    String     @unique
-  jury      Jury       @relation(fields: [juryId], references: [id], onDelete: Restrict)
-  juryId    String
-  notations Notation[] // Chaque membre du jury a plusieurs notations
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-}
-
-model Notation {
-  id            String       @id @default(uuid())
-  jury          Jury         @relation(fields: [juryId], references: [id], onDelete: Restrict)
-  juryId        String
-  candidature   Candidature  @relation(fields: [candidatureId], references: [id], onDelete: Restrict)
-  candidatureId String
-  note          Int
-  commentaire   String?
-  JuryMembre    JuryMembre[]
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+model Contact {
+  id             String       @id @default(uuid())
+  nom            String
+  telephone      String?
+  email          String?
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
+  organisationId String
 }
 
 model ActivityLog {
@@ -181,4 +144,10 @@ model ActivityLog {
   userId      String? // ID de l'utilisateur ayant effectué l'action
   user        User?      @relation(fields: [userId], references: [id], onDelete: Restrict) // Relation avec le modèle User
   createdAt   DateTime   @default(now()) // Date de l'action
+}
+model Province{
+  id          String     @id @default(uuid()) // ID unique
+  nom          String         @unique
+  anbreviation          String         @unique
+  organisations Organisation[] @relation("OrganisationProvinces")
 }

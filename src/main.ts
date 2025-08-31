@@ -19,10 +19,10 @@ async function bootstrap() {
   if (process.env.APP_STATUS == "DEV") {
     // Swagger documentation si on n'est pas en production
     const config = new DocumentBuilder()
-      .setTitle('DIWA - API')
-      .setDescription('API(s) pour la gestion des données de DIWA')
+      .setTitle('JEUNESSE-APP API')
+      .setDescription('API(s) pour la gestion des données de JEUNESSE-APP')
       .setVersion('1.0')
-      .addTag('DIWA - Documentation')
+      .addTag('JEUNESSE-APP - Documentation')
       .addBearerAuth(
         { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
         'access-token',

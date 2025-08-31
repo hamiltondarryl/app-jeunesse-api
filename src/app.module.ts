@@ -10,8 +10,9 @@ import { UserModule } from './user/user.module';
 import { RoleModule } from './role/role.module';
 import { PermissionModule } from './permission/permission.module';
 import { ActivityLogModule } from './activity-log/activity-log.module';
-import { EditionModule } from './edition/edition.module';
 import { AuthModule } from './auth/auth.module';
+import { OrganisationModule } from './organisation/organisation.module';
+import { DomaineModule } from './domaine/domaine.module';
 
 @Module({
   imports: [
@@ -47,8 +48,9 @@ import { AuthModule } from './auth/auth.module';
     RoleModule,
     PermissionModule,
     ActivityLogModule,
-    EditionModule,
     AuthModule,
+    OrganisationModule,
+    DomaineModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
