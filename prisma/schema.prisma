@@ -55,7 +55,6 @@ model PasswordReset {
   email     String   @unique
   code      String
   expiresAt DateTime
-
   @@unique([email, code])
 }
 
@@ -86,10 +85,12 @@ model Organisation {
   sigle              String?
   type               String?
   anneeCreation      Int?
-  agrementTechnique  Boolean
+  agrementTechniqueDelivred  Boolean
   adresse            String?
   commune            String?
   international      Boolean
+  typeRecepice       String?
+  recepice          String?
   groupes            Int?
   adherents          Int?
   hommes             Int?
@@ -105,8 +106,10 @@ model Organisation {
   responsableId      String?
   domaines           Domaine[]    @relation("OrganisationDomaines")
   contacts           Contact[]
-  provinces  Province[]  @relation("OrganisationProvinces")
+  activated          Boolean      @default(true)
+  updatedAt   DateTime @updatedAt
   createdAt          DateTime     @default(now())
+  departements       Departement[]  @relation("OrganisationDepartements")
 }
 
 model Responsable {
@@ -118,7 +121,10 @@ model Responsable {
   telephone    String?
   email        String?
   adresse      String?
+  pieceIdentite String?
   organisation Organisation[]
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
 }
 
 
@@ -126,6 +132,8 @@ model Domaine {
   id             String         @id @default(uuid())
   nom            String         @unique
   organisations  Organisation[] @relation("OrganisationDomaines")
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
 }
 
 model Contact {
@@ -134,7 +142,9 @@ model Contact {
   telephone      String?
   email          String?
   organisation   Organisation @relation(fields: [organisationId], references: [id])
-  organisationId String
+  organisationId String  
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
 }
 
 model ActivityLog {
@@ -145,9 +155,22 @@ model ActivityLog {
   user        User?      @relation(fields: [userId], references: [id], onDelete: Restrict) // Relation avec le modèle User
   createdAt   DateTime   @default(now()) // Date de l'action
 }
-model Province{
-  id          String     @id @default(uuid()) // ID unique
-  nom          String         @unique
-  anbreviation          String         @unique
-  organisations Organisation[] @relation("OrganisationProvinces")
+model Province {
+  id            String         @id @default(uuid())
+  nom           String         @unique
+  abreviation   String         @unique
+  departements  Departement[]
+  updatedAt     DateTime       @updatedAt
+  createdAt     DateTime       @default(now())
 }
+
+model Departement {
+  id          String       @id @default(uuid())
+  nom         String       
+  province    Province     @relation(fields: [provinceId], references: [id])
+  provinceId  String
+  organisations Organisation[] @relation("OrganisationDepartements")
+  updatedAt   DateTime     @updatedAt
+  createdAt   DateTime     @default(now())
+  @@unique([nom, provinceId])
+  }

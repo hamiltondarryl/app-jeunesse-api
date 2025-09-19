@@ -48,6 +48,8 @@ export class OrganisationController {
     return this.organisationService.findOne(id);
   }
 
+  @ApiOperation({ summary: "Mise à jour d'une organisation" })
+  @HttpCode(HttpStatus.OK)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateOrganisationDto: UpdateOrganisationDto) {
     return this.organisationService.update(+id, updateOrganisationDto);

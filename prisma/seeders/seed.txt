@@ -1,0 +1,600 @@
+
+import { PrismaClient } from '@prisma/client';
+import * as process from 'process';
+import * as bcrypt from "bcryptjs";
+import * as XLSX from 'xlsx';
+
+
+const prisma = new PrismaClient();
+
+async function main() {
+
+  console.log('Début des seeders 🏁 ---> 🔥');
+
+  const accesApp = await prisma.permission.create({
+    data: {
+      name: "ACCESS_APP",
+      description: "Acces a l'application",
+    },
+  });
+
+  const log = await prisma.permission.create({
+    data: {
+      name: "LOG",
+      description: "Histotrique des action d'un utilisateur",
+    },
+  });
+
+  const accesAppMobile = await prisma.permission.create({
+    data: {
+      name: "ACCESS_APP_MOBILE",
+      description: "Acces a l'application",
+    },
+  });
+
+  const dashboardAdmin = await prisma.permission.create({
+    data: {
+      name: "DASHBORD_ADMIN",
+      description: "Acces au tableau de bord de l'administration",
+    },
+  });
+
+  /** Permission d"accès aux utilisateurs */
+  const createUser = await prisma.permission.create({
+    data: {
+      name: "CREATE_USER",
+      description: "Créer un utilisateur",
+    },
+  });
+
+  const readUser = await prisma.permission.create({
+    data: {
+      name: "READ_USER",
+      description: "Afficher un utilisateur",
+    },
+  });
+
+  const listUser = await prisma.permission.create({
+    data: {
+      name: "LIST_USER",
+      description: "Lister les utilisateurs",
+    },
+  });
+
+  const updateUser = await prisma.permission.create({
+    data: {
+      name: "UPDATE_USER",
+      description: "Mettre à jour un utilisateur",
+    },
+  });
+
+  const deleteUser = await prisma.permission.create({
+    data: {
+      name: "DELETE_USER",
+      description: "Supprimer un utilisateur",
+    },
+  });
+
+  const activatedUser = await prisma.permission.create({
+    data: {
+      name: "ACTIVATED_USER",
+      description: "Activer et desactiver un utilisateur",
+    },
+  });
+  /** Fin */
+
+  /** Permission d"accès aux permissions */
+  const createPermission = await prisma.permission.create({
+    data: {
+      name: "CREATE_PERMISSION",
+      description: "Créer une permission",
+    },
+  });
+
+  const readPermission = await prisma.permission.create({
+    data: {
+      name: "READ_PERMISSION",
+      description: "Afficher une permission",
+    },
+  });
+
+  const listPermission = await prisma.permission.create({
+    data: {
+      name: "LIST_PERMISSION",
+      description: "Lister les permissions",
+    },
+  });
+
+  const updatePermission = await prisma.permission.create({
+    data: {
+      name: "UPDATE_PERMISSION",
+      description: "Mettre à jour une permission",
+    },
+  });
+
+  const deletePermission = await prisma.permission.create({
+    data: {
+      name: "DELETE_PERMISSION",
+      description: "Supprimer une permission",
+    },
+  });
+  /** Fin */
+
+  /** Permission d"accès aux roles */
+  const createRole = await prisma.permission.create({
+    data: {
+      name: "CREATE_ROLE",
+      description: "Créer un role",
+    },
+  });
+
+  const readRole = await prisma.permission.create({
+    data: {
+      name: "READ_ROLE",
+      description: "Afficher un role",
+    },
+  });
+
+  const listRole = await prisma.permission.create({
+    data: {
+      name: "LIST_ROLE",
+      description: "Lister les roles",
+    },
+  });
+
+  const updateRole = await prisma.permission.create({
+    data: {
+      name: "UPDATE_ROLE",
+      description: "Mettre à jour un role",
+    },
+  });
+
+  const deleteRole = await prisma.permission.create({
+    data: {
+      name: "DELETE_ROLE",
+      description: "Supprimer un role",
+    },
+  });
+
+  const noterCandidat = await prisma.permission.create({
+    data: {
+      name: "NOTER_CANDIDAT",
+      description: "Noter un candidat",
+    },
+  });
+
+  const consulterResultat = await prisma.permission.create({
+    data: {
+      name: "CONSULTER_RESULTAT",
+      description: "Consulter les resultats",
+    },
+  });
+
+  const listOrganisation = await prisma.permission.create({
+    data: {
+      name: "LIST_ORGANISATION",
+      description: "Lister les organisations",
+    },
+  });
+
+  const readOrganisation = await prisma.permission.create({
+    data: {
+      name: "READ_ORGANISATION",
+      description: "Lire une organisation",
+    },
+  });
+  
+  const updateOrganisation = await prisma.permission.create({
+    data: {
+      name: "UPDATE_ORGANISATION",
+      description: "Mettre à jour une organisation",
+    },
+  });
+
+  const deleteOrganisation = await prisma.permission.create({
+    data: {
+      name: "DELETE_ORGANISATION",
+      description: "Supprimer une organisation",
+    },
+  });
+
+  const createOrganisation = await prisma.permission.create({
+    data: {
+      name: "CREATE_ORGANISATION",
+      description: "Créer une organisation",
+    },
+  });
+
+  const listDomaine = await prisma.permission.create({
+    data: {
+      name: "LIST_DOMAINE",
+      description: "Lister les domaines",
+    },
+  });
+
+  const readDomaine = await prisma.permission.create({
+    data: {
+      name: "READ_DOMAINE",
+      description: "Lire un domaine",
+    },
+  });
+  
+  const updateDomaine = await prisma.permission.create({
+    data: {
+      name: "UPDATE_DOMAINE",
+      description: "Mettre à jour un domaine",
+    },
+  });
+
+  const deleteDomaine = await prisma.permission.create({
+    data: {
+      name: "DELETE_DOMAINE",
+      description: "Supprimer un domaine",
+    },
+  });
+
+  const createDomaine = await prisma.permission.create({
+    data: {
+      name: "CREATE_DOMAINE",
+      description: "Créer un domaine",
+    },
+  });
+
+
+  const listProvince = await prisma.permission.create({
+    data: {
+      name: "LIST_PROVINCE",
+      description: "Lister les provinces",
+    },
+  });
+
+  const readProvince = await prisma.permission.create({
+    data: {
+      name: "READ_PROVINCE",
+      description: "Lire une province",
+    },
+  });
+  
+  const updateProvince = await prisma.permission.create({
+    data: {
+      name: "UPDATE_PROVINCE",
+      description: "Mettre à jour une province",
+    },
+  });
+
+  const deleteProvince = await prisma.permission.create({
+    data: {
+      name: "DELETE_PROVINCE",
+      description: "Supprimer une province",
+    },
+  });
+
+  const createProvince = await prisma.permission.create({
+    data: {
+      name: "CREATE_PROVINCE",
+      description: "Créer une province",
+    },
+  }); 
+
+
+  console.log("Liste des permission => OK");
+
+  /** Fin */
+
+
+
+  // **2. Créer des rôles par défaut avec des codes et permissions**
+  const adminRole = await prisma.role.create({
+    data: {
+      name: "Admin",
+      code: "ADMIN",
+      description : "Il administre la plateform sans avoir acces à la partie metier",
+      permissions: {
+        connect: [
+          { id: accesApp.id },
+          { id: log.id },
+          { id: dashboardAdmin.id },
+          { id: createUser.id },
+          { id: readUser.id },
+          { id: listUser.id },
+          { id: updateUser.id },
+          { id: activatedUser.id },
+          { id: deleteUser.id },
+          { id: createPermission.id },
+          { id: readPermission.id },
+          { id: listPermission.id },
+          { id: updatePermission.id },
+          { id: deletePermission.id },
+          { id: createRole.id },
+          { id: readRole.id },
+          { id: listRole.id },
+          { id: updateRole.id },
+          { id: deleteRole.id },
+          { id: createOrganisation.id },
+          { id: readOrganisation.id },
+          { id: listOrganisation.id },
+          { id: updateOrganisation.id },
+          { id: deleteOrganisation.id },
+          { id: createDomaine.id },
+          { id: readDomaine.id },
+          { id: listDomaine.id },
+          { id: updateDomaine.id },
+          { id: deleteDomaine.id },
+          { id: createProvince.id },
+          { id: readProvince.id },
+          { id: listProvince.id },
+          { id: updateProvince.id },
+          { id: deleteProvince.id },
+        ],
+      },
+    },
+  });
+
+  const gestionaire = await prisma.role.create({
+    data: {
+      name: "Gestionnaire",
+      code: "GESTION",
+      description : "Il administre la plateform avec les permissions necessaires",
+      permissions: {
+        connect: [
+          { id: accesApp.id },
+          { id: log.id },
+          { id: accesAppMobile.id },
+          { id: dashboardAdmin.id },
+          { id: createUser.id },
+          { id: readUser.id },
+          { id: listUser.id },
+          { id: updateUser.id },
+          { id: activatedUser.id },
+        ],
+      },
+    },
+  });
+
+  const defaultPassword = await bcrypt.hash("azerty", 10);
+  const adminUser = await prisma.user.create({
+    data: {
+      email: "hamiltondarryl24@gmail.com",
+      username: "MAHANGA Hamilton",
+      activated: true,
+      password: defaultPassword, // Hash le mot de passe en production !
+      role: {
+        connect: { id: adminRole.id },
+      },
+    },
+  });
+
+  const gestionaireUser = await prisma.user.create({
+    data: {
+      email: "hamiltondarryl241@gmail.com",
+      username: "BOULINGUI Darryl",
+      activated: true,
+      password: defaultPassword, // Hash le mot de passe en production !
+      role: {
+        connect: { id: gestionaire.id },
+      },
+    },
+  });
+
+  console.log("Liste des roles => OK");
+  /** FIN */
+
+  // Création des provinces avec leurs départements
+  const provincesData = [
+    {
+      nom: 'Estuaire', 
+      abreviation: 'G1',
+      departements: ['Libreville', 'Komo', 'Komo-Mondah', 'Noya']
+    },
+    {
+      nom: 'Haut-Ogooué', 
+      abreviation: 'G2',
+      departements: ['Franceville', 'Lékoni-Lékori', 'Lékoko', 'Boumango', 'Mpassa', 'Plateaux', 'Sébé-Brikolo']
+    },
+    {
+      nom: 'Moyen-Ogooué', 
+      abreviation: 'G3',
+      departements: ['Lambaréne', 'Ndolou', 'Ogooué et des Lacs']
+    },
+    {
+      nom: 'Ngounié', 
+      abreviation: 'G4',
+      departements: ['Mouila', 'Boumi-Louetsi', 'Dola', 'Douya-Onoy', 'Louetsi-Wano', 'Ndolou', 'Ogoulou', 'Tsamba-Magotsi']
+    },
+    {
+      nom: 'Nyanga', 
+      abreviation: 'G5',
+      departements: ['Tchibanga', 'Basse-Banio', 'Doutsila', 'Haute-Banio', 'Mongo', 'Mougoutsi']
+    },
+    {
+      nom: 'Ogooué-Ivindo', 
+      abreviation: 'G6',
+      departements: ['Makokou', 'Ivindo', 'Lopé', 'Zadié']
+    },
+    {
+      nom: 'Ogooué-Lolo', 
+      abreviation: 'G7',
+      departements: ['Koulamoutou', 'Lombo-Bouenguidi', 'Loffi', 'Offoué-Onoye', 'Mulundu']
+    },
+    {
+      nom: 'Ogooué-Maritime', 
+      abreviation: 'G8',
+      departements: ['Port-Gentil', 'Bendjé', 'Etimboué', 'Ndougou']
+    },
+    {
+      nom: 'Woleu-Ntem', 
+      abreviation: 'G9',
+      departements: ['Oyem', 'Haut-Ntem', 'Ntem', 'Okano', 'Woleu']
+    },
+  ];
+
+  for (const provinceData of provincesData) {
+    const province = await prisma.province.upsert({
+      where: { nom: provinceData.nom },
+      update: {},
+      create: {
+        nom: provinceData.nom,
+        abreviation: provinceData.abreviation,
+        departements: {
+          create: provinceData.departements.map(nom => ({ nom }))
+        }
+      },
+    });
+  }
+
+  console.log("Provinces et départements créés => OK");
+
+  // Lecture du fichier Excel
+  const workbook = XLSX.readFile('prisma/ass.xlsx');
+  const sheetName = workbook.SheetNames[0];
+  const data = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+  for (const row of data) {
+    console.log(row["Quel est le nom de votre OSC ?"]);
+
+    const nomResponsable = row['Nom et Prénoms du principal responsable de la structure ?']?.trim();
+    if (!nomResponsable) continue;
+
+    // Gestion des départements
+    const nomProvince = row["Veuillez sélectionner vos zones d'intervention dans la liste suivante :"]?.trim();
+    let departementConnect = [];
+
+    if (nomProvince) {
+      const zones = nomProvince.split(/\s*,\s*/).map(zone => zone.trim());
+      
+      for (const zone of zones) {
+        // Essayer de trouver d'abord un département
+        const departement = await prisma.departement.findFirst({
+          where: { 
+            nom: { 
+              contains: zone, 
+              mode: 'insensitive' 
+            } 
+          }
+        });
+
+        if (departement) {
+          departementConnect.push({ id: departement.id });
+        } else {
+          // Si le département n'est pas trouvé, chercher une province et prendre son premier département
+          const province = await prisma.province.findFirst({
+            where: { 
+              nom: { 
+                contains: zone, 
+                mode: 'insensitive' 
+              } 
+            },
+            include: { departements: true }
+          });
+
+          if (province && province.departements.length > 0) {
+            // Prendre le premier département de la province
+            departementConnect.push({ id: province.departements[0].id });
+            console.warn(`⚠️ Département non trouvé pour la zone: "${zone}", utilisé le premier département de: "${province.nom}"`);
+          } else {
+            // Fallback: utiliser le premier département disponible
+            const fallbackDepartement = await prisma.departement.findFirst();
+            if (fallbackDepartement) {
+              departementConnect.push({ id: fallbackDepartement.id });
+              console.warn(`⚠️ Zone non trouvée: "${zone}", utilisé département fallback`);
+            }
+          }
+        }
+      }
+    }
+
+    // Éliminer les doublons
+    departementConnect = Array.from(new Map(departementConnect.map(item => [item.id, item])).values());
+
+    // Responsable
+    const responsable = await prisma.responsable.upsert({
+      where: { nom: nomResponsable },
+      update: {},
+      create: {
+        nom: nomResponsable,
+        age: Number(row["Quelle est l'âge du responsable ? (en années)"]) || null,
+        nationalite: row['Veuillez entrer la nationalité du responsable'] || null,
+        situation: row['Quelle est sa situation professionnelle ?'] || null,
+        telephone: row['N° de téléphone :']?.toString() || null,
+        email: row['Adresse courriel :'] || null,
+        adresse: row["Adresse :"] || null,
+      },
+    });
+
+    // Domaine(s)
+    const domaines = (row["Quels est son domaine d'intervention ?"] || "")
+      .split(',')
+      .map((d) => d.trim())
+      .filter((d) => d.length > 0);
+
+    const domaineConnections = await Promise.all(
+      domaines.map(async (domaine) => {
+        return {
+          where: { nom: domaine },
+          create: { nom: domaine },
+        };
+      })
+    );
+
+    // Organisation
+    const orga = await prisma.organisation.create({
+      data: {
+        nom: row["Quel est le nom de votre OSC ?"] || "Inconnu",
+        sigle: row["Quel est le sigle ?"] || null,
+        type: row["Quel est le type de votre OSC ?"] || null,
+        anneeCreation: Number(row["En quelle année à t-elle été crée ?"]) || null,
+        agrementTechniqueDelivred: row["Avez vous un agrément technique ?"] === "Oui",
+        adresse: row["Quelle est l'adresse du Siège de votre OSC ?"] || null,
+        commune: row["Commune de ESTUAIRE"] || null,
+        international: row["Est vous présent au niveau international ?"] === "Oui",
+        groupes: Number(row["En combien de groupes êtes vous subdivisé ?"]) || null,
+        adherents: Number(row["Nombre d'Adhérents de votre OSC ?"]) || null,
+        hommes: Number(row["Parmi vos adhérents, combien sont des hommes ?"]) || null,
+        femmes: Number(row["Parmi vos adhérents, combien sont des femmes ?"]) || null,
+        salaries: Number(row["Parmi vos adhérents, combien sont des salariés ?"]) || null,
+        benevoles: Number(row["Combien sont des bénévoles ?"]) || null,
+        cotisationMensuelle: Number(row["Quel est le montant des cotisations mensuelles ?"]) || null,
+        partenaires: row["Avez vous des partenaires officiels ?"] === "Oui",
+        but: row[`Quel est "Le BUT" visé par l'association ?`] || null,
+        publicCible: row["Quel est le Public ciblé ?"] || null,
+        zones: Object.keys(row)
+          .filter((key) => key.startsWith("Veuillez sélectionner vos zones d'intervention") && row[key] === 1)
+          .map((key) => key.split("/")[1]),
+        responsable: {
+          connect: { nom: nomResponsable },
+        },
+        domaines: {
+          connectOrCreate: domaineConnections,
+        },
+        departements: {
+          connect: departementConnect,
+        },
+      },
+    });
+
+    // Contact (si différent du responsable)
+    const nomContact = row["Nom et Prénom(s) du Responsable :"]?.trim();
+    if (nomContact && nomContact !== nomResponsable) {
+      await prisma.contact.create({
+        data: {
+          nom: nomContact,
+          telephone: "0" + row["N° de téléphone"]?.toString() || null,
+          email: row["Courriel :"] || null,
+          organisationId: orga.id,
+        },
+      });
+    }
+  }
+
+  console.log('✅ Base de données remplie avec succès');
+  console.log("Seed terminé avec succès 😍 , 🎉 🎉 🎉 🎉 🎉");
+}
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

@@ -63,10 +63,12 @@ CREATE TABLE "Organisation" (
     "sigle" TEXT,
     "type" TEXT,
     "anneeCreation" INTEGER,
-    "agrementTechnique" BOOLEAN NOT NULL,
+    "agrementTechniqueDelivred" BOOLEAN NOT NULL,
     "adresse" TEXT,
     "commune" TEXT,
     "international" BOOLEAN NOT NULL,
+    "typeRecepice" TEXT,
+    "recepice" TEXT,
     "groupes" INTEGER,
     "adherents" INTEGER,
     "hommes" INTEGER,
@@ -79,6 +81,8 @@ CREATE TABLE "Organisation" (
     "publicCible" TEXT,
     "zones" TEXT[],
     "responsableId" TEXT,
+    "activated" BOOLEAN NOT NULL DEFAULT true,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Organisation_pkey" PRIMARY KEY ("id")
@@ -94,6 +98,9 @@ CREATE TABLE "Responsable" (
     "telephone" TEXT,
     "email" TEXT,
     "adresse" TEXT,
+    "pieceIdentite" TEXT,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Responsable_pkey" PRIMARY KEY ("id")
 );
@@ -102,6 +109,8 @@ CREATE TABLE "Responsable" (
 CREATE TABLE "Domaine" (
     "id" TEXT NOT NULL,
     "nom" TEXT NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Domaine_pkey" PRIMARY KEY ("id")
 );
@@ -113,6 +122,8 @@ CREATE TABLE "Contact" (
     "telephone" TEXT,
     "email" TEXT,
     "organisationId" TEXT NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Contact_pkey" PRIMARY KEY ("id")
 );
@@ -132,9 +143,22 @@ CREATE TABLE "ActivityLog" (
 CREATE TABLE "Province" (
     "id" TEXT NOT NULL,
     "nom" TEXT NOT NULL,
-    "anbreviation" TEXT NOT NULL,
+    "abreviation" TEXT NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Province_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Departement" (
+    "id" TEXT NOT NULL,
+    "nom" TEXT NOT NULL,
+    "provinceId" TEXT NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Departement_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -146,19 +170,19 @@ CREATE TABLE "_RolePermissions" (
 );
 
 -- CreateTable
-CREATE TABLE "_OrganisationProvinces" (
-    "A" TEXT NOT NULL,
-    "B" TEXT NOT NULL,
-
-    CONSTRAINT "_OrganisationProvinces_AB_pkey" PRIMARY KEY ("A","B")
-);
-
--- CreateTable
 CREATE TABLE "_OrganisationDomaines" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL,
 
     CONSTRAINT "_OrganisationDomaines_AB_pkey" PRIMARY KEY ("A","B")
+);
+
+-- CreateTable
+CREATE TABLE "_OrganisationDepartements" (
+    "A" TEXT NOT NULL,
+    "B" TEXT NOT NULL,
+
+    CONSTRAINT "_OrganisationDepartements_AB_pkey" PRIMARY KEY ("A","B")
 );
 
 -- CreateIndex
@@ -192,16 +216,19 @@ CREATE UNIQUE INDEX "Domaine_nom_key" ON "Domaine"("nom");
 CREATE UNIQUE INDEX "Province_nom_key" ON "Province"("nom");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Province_anbreviation_key" ON "Province"("anbreviation");
+CREATE UNIQUE INDEX "Province_abreviation_key" ON "Province"("abreviation");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Departement_nom_provinceId_key" ON "Departement"("nom", "provinceId");
 
 -- CreateIndex
 CREATE INDEX "_RolePermissions_B_index" ON "_RolePermissions"("B");
 
 -- CreateIndex
-CREATE INDEX "_OrganisationProvinces_B_index" ON "_OrganisationProvinces"("B");
+CREATE INDEX "_OrganisationDomaines_B_index" ON "_OrganisationDomaines"("B");
 
 -- CreateIndex
-CREATE INDEX "_OrganisationDomaines_B_index" ON "_OrganisationDomaines"("B");
+CREATE INDEX "_OrganisationDepartements_B_index" ON "_OrganisationDepartements"("B");
 
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES "Role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -216,19 +243,22 @@ ALTER TABLE "Contact" ADD CONSTRAINT "Contact_organisationId_fkey" FOREIGN KEY (
 ALTER TABLE "ActivityLog" ADD CONSTRAINT "ActivityLog_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Departement" ADD CONSTRAINT "Departement_provinceId_fkey" FOREIGN KEY ("provinceId") REFERENCES "Province"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "_RolePermissions" ADD CONSTRAINT "_RolePermissions_A_fkey" FOREIGN KEY ("A") REFERENCES "Permission"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_RolePermissions" ADD CONSTRAINT "_RolePermissions_B_fkey" FOREIGN KEY ("B") REFERENCES "Role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_OrganisationProvinces" ADD CONSTRAINT "_OrganisationProvinces_A_fkey" FOREIGN KEY ("A") REFERENCES "Organisation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_OrganisationProvinces" ADD CONSTRAINT "_OrganisationProvinces_B_fkey" FOREIGN KEY ("B") REFERENCES "Province"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "_OrganisationDomaines" ADD CONSTRAINT "_OrganisationDomaines_A_fkey" FOREIGN KEY ("A") REFERENCES "Domaine"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_OrganisationDomaines" ADD CONSTRAINT "_OrganisationDomaines_B_fkey" FOREIGN KEY ("B") REFERENCES "Organisation"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_OrganisationDepartements" ADD CONSTRAINT "_OrganisationDepartements_A_fkey" FOREIGN KEY ("A") REFERENCES "Departement"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_OrganisationDepartements" ADD CONSTRAINT "_OrganisationDepartements_B_fkey" FOREIGN KEY ("B") REFERENCES "Organisation"("id") ON DELETE CASCADE ON UPDATE CASCADE;

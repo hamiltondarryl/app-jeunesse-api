@@ -11,7 +11,14 @@ export class OrganisationService {
 
   ) { }
   create(createOrganisationDto: CreateOrganisationDto) {
-    return 'This action adds a new organisation';
+
+
+    try {
+      
+    } catch (error) {
+
+      throw error;
+    }
   }
 
   async findAll() {
@@ -21,7 +28,7 @@ export class OrganisationService {
           responsable: true,
           domaines: true,
           contacts: true,
-          provinces: true,
+          departements: { include: { province: true } },
         },
       });
 
@@ -96,7 +103,8 @@ export class OrganisationService {
           responsable: true,
           domaines: true,
           contacts: true,
-          provinces: true,
+          departements: { include: { province: true } },
+
         },
       });
 
@@ -111,9 +119,11 @@ export class OrganisationService {
     try {
       const organisations = this.prismaService.organisation.findMany({
         where: {
-          provinces: {
+          departements: {
             some: {
-              anbreviation: provinceAbreviation,
+              province: {
+                abreviation: provinceAbreviation,
+              },
             },
           },
         },
@@ -121,7 +131,8 @@ export class OrganisationService {
           responsable: true,
           domaines: true,
           contacts: true,
-          provinces: true,
+          departements: { include: { province: true } },
+
         },
       });
 
@@ -143,7 +154,8 @@ export class OrganisationService {
           responsable: true,
           domaines: true,
           contacts: true,
-          provinces: true,
+          departements: { include: { province: true } },
+
         },
       });
 

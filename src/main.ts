@@ -14,7 +14,12 @@ import * as process from 'process';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
   app.setGlobalPrefix('api');
-  app.useGlobalPipes(new ValidationPipe())
+  app.useGlobalPipes( new ValidationPipe({
+      transform: true, // Active la transformation automatique
+      transformOptions: {
+        enableImplicitConversion: true, // Active la conversion implicite
+      },
+    }),)
   app.use(helmet());
   if (process.env.APP_STATUS == "DEV") {
     // Swagger documentation si on n'est pas en production

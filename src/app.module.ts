@@ -13,6 +13,8 @@ import { ActivityLogModule } from './activity-log/activity-log.module';
 import { AuthModule } from './auth/auth.module';
 import { OrganisationModule } from './organisation/organisation.module';
 import { DomaineModule } from './domaine/domaine.module';
+import { DepartementModule } from './departement/departement.module';
+import { ProvinceModule } from './province/province.module';
 
 @Module({
   imports: [
@@ -51,6 +53,8 @@ import { DomaineModule } from './domaine/domaine.module';
     AuthModule,
     OrganisationModule,
     DomaineModule,
+    DepartementModule,
+    ProvinceModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
