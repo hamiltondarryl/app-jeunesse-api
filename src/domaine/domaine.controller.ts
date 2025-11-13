@@ -17,24 +17,24 @@ export class DomaineController {
   @Permissions('CREATE_DOMAINE') // La permission requise
   @HttpCode(HttpStatus.CREATED)
   @Post()
-  create(@Body() createDomaineDto: CreateDomaineDto) {
-    return this.domaineService.create(createDomaineDto);
+ async  create(@Body() createDomaineDto: CreateDomaineDto) {
+    return await this.domaineService.create(createDomaineDto);
   }
 
   @ApiOperation({ summary: "Lister les domaines" })
   @HttpCode(HttpStatus.OK)
   @Get()
-  findAll() {
-    return this.domaineService.findAll();
+  async findAll() {
+    return await this.domaineService.findAll();
   }
 
   @ApiOperation({ summary: "Rechercher des domaines " })
   @HttpCode(HttpStatus.OK)
   @Get('search')
-  search( @Query('searchQuery') searchQuery: string,
+  async search( @Query('searchQuery') searchQuery: string,
   @Query('page', ParseIntPipe) page: number = 1,
   @Query('limit', ParseIntPipe) limit: number = 10,) {
-    return this.domaineService.search(page, limit, searchQuery);
+    return await this.domaineService.search(page, limit, searchQuery);
   }
 
   @ApiOperation({ summary: "Rechercher un domaine" })
@@ -42,8 +42,8 @@ export class DomaineController {
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Permissions('READ_DOMAINE') // La permission requise
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.domaineService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    return await this.domaineService.findOne(id);
   }
 
   @ApiOperation({ summary: "Modifier un domaine" })
@@ -51,8 +51,8 @@ export class DomaineController {
   @Permissions('UPDATE_DOMAINE') // La permission requise
   @HttpCode(HttpStatus.OK)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDomaineDto: UpdateDomaineDto) {
-    return this.domaineService.update(id, updateDomaineDto);
+  async update(@Param('id') id: string, @Body() updateDomaineDto: UpdateDomaineDto) {
+    return await this.domaineService.update(id, updateDomaineDto);
   }
 
   @ApiOperation({ summary: "Supprimer un domaine" })

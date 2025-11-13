@@ -8,7 +8,6 @@ async function main() {
   console.log('🚀 Début du seeder...');
 
   // Nettoyer les tables dans l'ordre (respect des FK)
-  await prisma.contact.deleteMany();
   await prisma.organisation.deleteMany();
   await prisma.responsable.deleteMany();
   await prisma.domaine.deleteMany();
@@ -153,47 +152,47 @@ async function main() {
     {
       nom: 'Estuaire',
       abreviation: 'G1',
-      departements: ['Libreville', 'Komo', 'Komo-Mondah', 'Noya']
+      departements: ['Komo', 'Komo-Mondah', 'Noya', 'Komo-Océan']
     },
     {
       nom: 'Haut-Ogooué',
       abreviation: 'G2',
-      departements: ['Franceville', 'Lékoni-Lékori', 'Lékoko', 'Boumango', 'Mpassa', 'Plateaux', 'Sébé-Brikolo']
+      departements: ['Lékoni-Lékori', 'Lékoko', 'Ogooué-Létili', 'Djouori-Agnili', 'Djoué', 'Sébé-Brikolo', 'Bayi-Brikolo', 'Lékabi-Léwolo' ,'Mpassa', 'Plateaux', 'Sébé-Brikolo']
     },
     {
       nom: 'Moyen-Ogooué',
       abreviation: 'G3',
-      departements: ['Lambaréne', 'Ndolou', 'Ogooué et des Lacs']
+      departements: ['Abanga-Bigné', 'Ogooué et des Lacs']
     },
     {
       nom: 'Ngounié',
       abreviation: 'G4',
-      departements: ['Mouila', 'Boumi-Louetsi', 'Dola', 'Douya-Onoy', 'Louetsi-Wano', 'Ndolou', 'Ogoulou', 'Tsamba-Magotsi']
+      departements: ['Mougalaba', 'Boumi-Louetsi', 'Dola', 'Douya-Onoy', 'Louetsi-Wano', 'Louetsi-Bibaka', 'Ogoulou', 'Ndolou', 'Ogoulou', 'Tsamba-Magotsi']
     },
     {
       nom: 'Nyanga',
       abreviation: 'G5',
-      departements: ['Tchibanga', 'Basse-Banio', 'Doutsila', 'Haute-Banio', 'Mongo', 'Mougoutsi']
+      departements: ['Douigni', 'Basse-Banio', 'Doutsila', 'Haute-Banio', 'Mongo', 'Mougoutsi']
     },
     {
       nom: 'Ogooué-Ivindo',
       abreviation: 'G6',
-      departements: ['Makokou', 'Ivindo', 'Lopé', 'Zadié']
+      departements: ['Mvoung', 'Ivindo', 'Lopé', 'Zadié']
     },
     {
       nom: 'Ogooué-Lolo',
       abreviation: 'G7',
-      departements: ['Koulamoutou', 'Lombo-Bouenguidi', 'Loffi', 'Offoué-Onoye', 'Mulundu']
+      departements: ['Lombo-Bouenguidi', 'Loffi', 'Offoué-Onoye', 'Mouloundou']
     },
     {
       nom: 'Ogooué-Maritime',
       abreviation: 'G8',
-      departements: ['Port-Gentil', 'Bendjé', 'Etimboué', 'Ndougou']
+      departements: ['Bendjé', 'Etimboué', 'Ndougou']
     },
     {
       nom: 'Woleu-Ntem',
       abreviation: 'G9',
-      departements: ['Oyem', 'Haut-Ntem', 'Ntem', 'Okano', 'Woleu']
+      departements: ['Haut-Ntem', 'Ntem', 'Okano', 'Woleu']
     },
   ];
 
@@ -212,6 +211,8 @@ async function main() {
 
   console.log("✅ Provinces et départements créés");
 
+
+  
   // Lecture du fichier Excel
   const workbook = XLSX.readFile('prisma/ass.xlsx');
   const sheetName = workbook.SheetNames[0];
@@ -309,7 +310,7 @@ async function main() {
 
       const domainesCrees = await Promise.all(domaineOperations);
       const domaineIds = domainesCrees.map(d => ({ id: d.id }));
-
+/*
       // Organisation
       const orga = await prisma.organisation.create({
         data: {
@@ -328,7 +329,7 @@ async function main() {
           salaries: Number(row["Parmi vos adhérents, combien sont des salariés ?"]) || null,
           benevoles: Number(row["Combien sont des bénévoles ?"]) || null,
           cotisationMensuelle: Number(row["Quel est le montant des cotisations mensuelles ?"]) || null,
-          partenaires: row["Avez vous des partenaires officiels ?"] === "Oui",
+          partenaires: row["Si oui, lequel / lesquels"] || null,
           but: row[`Quel est "Le BUT" visé par l'association ?`] || null,
           publicCible: row["Quel est le Public ciblé ?"] || null,
           zones: Object.keys(row)
@@ -361,6 +362,8 @@ async function main() {
 
       orgCount++;
       console.log(`✅ Organisation "${orga.nom}" créée avec ${domaineIds.length} domaine(s)`);
+
+       */
 
     } catch (error) {
       errorCount++;

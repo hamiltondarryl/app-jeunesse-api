@@ -98,14 +98,12 @@ model Organisation {
   salaries           Int?
   benevoles          Int?
   cotisationMensuelle Float?
-  partenaires        Boolean
+  partenaires        String?
   but                String?
   publicCible        String?
-  zones              String[]
   responsable        Responsable? @relation(fields: [responsableId], references: [id])
   responsableId      String?
   domaines           Domaine[]    @relation("OrganisationDomaines")
-  contacts           Contact[]
   activated          Boolean      @default(true)
   updatedAt   DateTime @updatedAt
   createdAt          DateTime     @default(now())
@@ -132,17 +130,6 @@ model Domaine {
   id             String         @id @default(uuid())
   nom            String         @unique
   organisations  Organisation[] @relation("OrganisationDomaines")
-  updatedAt   DateTime @updatedAt
-  createdAt   DateTime @default(now())
-}
-
-model Contact {
-  id             String       @id @default(uuid())
-  nom            String
-  telephone      String?
-  email          String?
-  organisation   Organisation @relation(fields: [organisationId], references: [id])
-  organisationId String  
   updatedAt   DateTime @updatedAt
   createdAt   DateTime @default(now())
 }

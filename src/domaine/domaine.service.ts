@@ -14,10 +14,12 @@ export class DomaineService {
   async create(createDomaineDto: CreateDomaineDto) {
 
     try {
+
       const existing = await this.prismaService.domaine.findUnique({ where: { nom: createDomaineDto.name } });
-      if (!existing) {
+
+      if (existing) {
         throw new ValidationException({
-          roleId: ["Ce domaine n'existe pas"],
+          name: ["Ce domaine existe déjà"],
         });
       }
 
@@ -63,7 +65,9 @@ export class DomaineService {
         where,  // Filtre selon la recherche
         skip: (page - 1) * limit,  // Pagination
         take: limit,
-
+        orderBy: {
+          createdAt: 'desc'
+        }
         // Limite du nombre d'éléments par page
       });
 

@@ -71,7 +71,14 @@ export class DepartementService {
           where,  // Filtre selon la recherche
           skip: (searchDepartmentDto.page - 1) * searchDepartmentDto.limit,  // Pagination
           take: searchDepartmentDto.limit,
-  
+          include : {
+            province : true
+          }, 
+          orderBy: {
+            province: {
+              abreviation: 'asc'
+            }
+          }
           // Limite du nombre d'éléments par page
         });
   

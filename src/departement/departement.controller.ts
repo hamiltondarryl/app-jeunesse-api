@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, Query, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { DepartementService } from './departement.service';
 import { CreateDepartementDto } from './dto/create-departement.dto';
 import { UpdateDepartementDto } from './dto/update-departement.dto';
@@ -9,12 +9,12 @@ import { PermissionsGuard } from 'src/auth/guards/permissions.guard';
 import { Permissions } from 'src/auth/guards/permissions.decorator';
 
 
-@ApiTags("Gestion des departements")
+@ApiTags("Gestion des départements")
 @Controller('departement')
 export class DepartementController {
   constructor(private readonly departementService: DepartementService) { }
 
-  @ApiOperation({ summary: "Créer un departement" })
+  @ApiOperation({ summary: "Créer un département" })
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Permissions('CREATE_DEPARTEMENT') // La permission requise
   @Post()
@@ -34,13 +34,13 @@ export class DepartementController {
     return await this.departementService.search(searchDepartmentDto);
   }
 
-  @ApiOperation({ summary: "Récuperation d'un departement" })
+  @ApiOperation({ summary: "Récuperation d'un département" })
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return await this.departementService.findOne(id);
   }
 
-  @ApiOperation({ summary: "Mise à jour d'un departement" })
+  @ApiOperation({ summary: "Mise à jour d'un département" })
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Permissions('UPDATE_DEPARTEMENT') // La permission requise
   @Patch(':id')
@@ -48,7 +48,7 @@ export class DepartementController {
     return this.departementService.update(id, updateDepartementDto);
   }
 
-  @ApiOperation({ summary: "Suppression d'un departement" })
+  @ApiOperation({ summary: "Suppression d'un département" })
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Permissions('DELETE_DEPARTEMENT') // La permission requise
   @Delete(':id')

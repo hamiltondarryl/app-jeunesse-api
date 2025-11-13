@@ -76,10 +76,9 @@ CREATE TABLE "Organisation" (
     "salaries" INTEGER,
     "benevoles" INTEGER,
     "cotisationMensuelle" DOUBLE PRECISION,
-    "partenaires" BOOLEAN NOT NULL,
+    "partenaires" TEXT,
     "but" TEXT,
     "publicCible" TEXT,
-    "zones" TEXT[],
     "responsableId" TEXT,
     "activated" BOOLEAN NOT NULL DEFAULT true,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -113,19 +112,6 @@ CREATE TABLE "Domaine" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Domaine_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Contact" (
-    "id" TEXT NOT NULL,
-    "nom" TEXT NOT NULL,
-    "telephone" TEXT,
-    "email" TEXT,
-    "organisationId" TEXT NOT NULL,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "Contact_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -235,9 +221,6 @@ ALTER TABLE "User" ADD CONSTRAINT "User_roleId_fkey" FOREIGN KEY ("roleId") REFE
 
 -- AddForeignKey
 ALTER TABLE "Organisation" ADD CONSTRAINT "Organisation_responsableId_fkey" FOREIGN KEY ("responsableId") REFERENCES "Responsable"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Contact" ADD CONSTRAINT "Contact_organisationId_fkey" FOREIGN KEY ("organisationId") REFERENCES "Organisation"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ActivityLog" ADD CONSTRAINT "ActivityLog_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
