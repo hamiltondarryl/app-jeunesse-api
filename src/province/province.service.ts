@@ -3,8 +3,7 @@ import { CreateProvinceDto } from './dto/create-province.dto';
 import { UpdateProvinceDto } from './dto/update-province.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { SearchDepartmentDto } from 'src/departement/dto/pagination.dto';
-import { Prisma } from '@prisma/client';
-
+import { Prisma } from 'src/generated/prisma/client';
 @Injectable()
 export class ProvinceService {
 

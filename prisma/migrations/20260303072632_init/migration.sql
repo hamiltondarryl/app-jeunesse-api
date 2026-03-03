@@ -17,6 +17,7 @@ CREATE TABLE "User" (
     "passwordIsRest" BOOLEAN NOT NULL DEFAULT false,
     "fcmToken" TEXT,
     "activated" BOOLEAN NOT NULL DEFAULT false,
+    "passwordDefault" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -68,7 +69,9 @@ CREATE TABLE "Organisation" (
     "commune" TEXT,
     "international" BOOLEAN NOT NULL,
     "typeRecepice" TEXT,
+    "rib" TEXT,
     "recepice" TEXT,
+    "recepiceProvisoirOuDefinitif" TEXT,
     "groupes" INTEGER,
     "adherents" INTEGER,
     "hommes" INTEGER,
@@ -80,7 +83,9 @@ CREATE TABLE "Organisation" (
     "but" TEXT,
     "publicCible" TEXT,
     "responsableId" TEXT,
-    "activated" BOOLEAN NOT NULL DEFAULT true,
+    "secretaireGeneralId" TEXT,
+    "tresorierId" TEXT,
+    "activated" BOOLEAN NOT NULL DEFAULT false,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -94,6 +99,7 @@ CREATE TABLE "Responsable" (
     "age" INTEGER,
     "nationalite" TEXT,
     "situation" TEXT,
+    "situationMatrimoniale" TEXT,
     "telephone" TEXT,
     "email" TEXT,
     "adresse" TEXT,
@@ -221,6 +227,12 @@ ALTER TABLE "User" ADD CONSTRAINT "User_roleId_fkey" FOREIGN KEY ("roleId") REFE
 
 -- AddForeignKey
 ALTER TABLE "Organisation" ADD CONSTRAINT "Organisation_responsableId_fkey" FOREIGN KEY ("responsableId") REFERENCES "Responsable"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Organisation" ADD CONSTRAINT "Organisation_secretaireGeneralId_fkey" FOREIGN KEY ("secretaireGeneralId") REFERENCES "Responsable"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Organisation" ADD CONSTRAINT "Organisation_tresorierId_fkey" FOREIGN KEY ("tresorierId") REFERENCES "Responsable"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ActivityLog" ADD CONSTRAINT "ActivityLog_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

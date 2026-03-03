@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { CreateActivityLogDto } from './dto/create-activity-log.dto';
-import { UpdateActivityLogDto } from './dto/update-activity-log.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ActionType } from '@prisma/client';
+import { ActionType } from 'src/generated/prisma/client';
 
 @Injectable()
 export class ActivityLogService {

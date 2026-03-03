@@ -5,12 +5,12 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum ActionType {
@@ -23,6 +23,7 @@ enum ActionType {
   ACCOUNT_CREATED // Creation du compte 
   ACCOUNT_ACTIVATION // Actived du compte
 }
+
 enum TypeOSC {
   ONG
   Association
@@ -44,6 +45,7 @@ model User {
   passwordIsRest Boolean       @default(false)
   fcmToken       String?
   activated      Boolean       @default(false)
+  passwordDefault   Boolean       @default(true)
   role           Role          @relation(fields: [roleId], references: [id], onDelete: Restrict)
   ActivityLog    ActivityLog[]
   createdAt      DateTime      @default(now())
@@ -55,6 +57,7 @@ model PasswordReset {
   email     String   @unique
   code      String
   expiresAt DateTime
+
   @@unique([email, code])
 }
 
@@ -78,60 +81,68 @@ model Permission {
   updatedAt   DateTime @updatedAt
 }
 
-
 model Organisation {
-  id                 String       @id @default(uuid())
-  nom                String
-  sigle              String?
-  type               String?
-  anneeCreation      Int?
-  agrementTechniqueDelivred  Boolean
-  adresse            String?
-  commune            String?
-  international      Boolean
-  typeRecepice       String?
-  recepice          String?
-  groupes            Int?
-  adherents          Int?
-  hommes             Int?
-  femmes             Int?
-  salaries           Int?
-  benevoles          Int?
-  cotisationMensuelle Float?
-  partenaires        String?
-  but                String?
-  publicCible        String?
-  responsable        Responsable? @relation(fields: [responsableId], references: [id])
-  responsableId      String?
-  domaines           Domaine[]    @relation("OrganisationDomaines")
-  activated          Boolean      @default(true)
-  updatedAt   DateTime @updatedAt
-  createdAt          DateTime     @default(now())
-  departements       Departement[]  @relation("OrganisationDepartements")
+  id                           String        @id @default(uuid())
+  nom                          String
+  sigle                        String?
+  type                         String?
+  anneeCreation                Int?
+  agrementTechniqueDelivred    Boolean
+  adresse                      String?
+  commune                      String?
+  international                Boolean
+  typeRecepice                 String?
+  rib                          String?
+  recepice                     String?
+  recepiceProvisoirOuDefinitif String?
+  groupes                      Int?
+  adherents                    Int?
+  hommes                       Int?
+  femmes                       Int?
+  salaries                     Int?
+  benevoles                    Int?
+  cotisationMensuelle          Float?
+  partenaires                  String?
+  but                          String?
+  publicCible                  String?
+  responsable                  Responsable?  @relation("OrganisationResponsable", fields: [responsableId], references: [id])
+  secretaireGeneral            Responsable?  @relation("OrganisationSecretaireGeneral", fields: [secretaireGeneralId], references: [id])
+  tresorier                    Responsable?  @relation("OrganisationTresorier", fields: [tresorierId], references: [id])
+  responsableId                String?
+  secretaireGeneralId          String?
+  tresorierId                  String?
+  domaines                     Domaine[]     @relation("OrganisationDomaines")
+  activated                    Boolean       @default(false)
+  updatedAt                    DateTime      @updatedAt
+  createdAt                    DateTime      @default(now())
+  departements                 Departement[] @relation("OrganisationDepartements")
 }
 
 model Responsable {
-  id           String         @id @default(uuid())
-  nom          String         @unique
-  age          Int?
-  nationalite  String?
-  situation    String?
-  telephone    String?
-  email        String?
-  adresse      String?
-  pieceIdentite String?
-  organisation Organisation[]
-  updatedAt   DateTime @updatedAt
-  createdAt   DateTime @default(now())
+  id                               String         @id @default(uuid())
+  nom                              String         @unique
+  age                              Int?
+  nationalite                      String?
+  situation                        String?
+  situationMatrimoniale            String?
+  telephone                        String?
+  email                            String?
+  adresse                          String?
+  pieceIdentite                    String?
+  organisationsAsResponsable       Organisation[] @relation("OrganisationResponsable")
+  organisationsAsSecretaireGeneral Organisation[] @relation("OrganisationSecretaireGeneral")
+  updatedAt                        DateTime       @updatedAt
+  createdAt                        DateTime       @default(now())
+
+  organisations Organisation[] @relation("OrganisationTresorier")
 }
 
-
 model Domaine {
-  id             String         @id @default(uuid())
-  nom            String         @unique
-  organisations  Organisation[] @relation("OrganisationDomaines")
-  updatedAt   DateTime @updatedAt
-  createdAt   DateTime @default(now())
+  id            String         @id @default(uuid())
+  nom           String         @unique
+  organisations Organisation[] @relation("OrganisationDomaines")
+  updatedAt     DateTime       @updatedAt
+  createdAt     DateTime       @default(now())
 }
 
 model ActivityLog {
@@ -142,22 +153,24 @@ model ActivityLog {
   user        User?      @relation(fields: [userId], references: [id], onDelete: Restrict) // Relation avec le modèle User
   createdAt   DateTime   @default(now()) // Date de l'action
 }
+
 model Province {
-  id            String         @id @default(uuid())
-  nom           String         @unique
-  abreviation   String         @unique
-  departements  Departement[]
-  updatedAt     DateTime       @updatedAt
-  createdAt     DateTime       @default(now())
+  id           String        @id @default(uuid())
+  nom          String        @unique
+  abreviation  String        @unique
+  departements Departement[]
+  updatedAt    DateTime      @updatedAt
+  createdAt    DateTime      @default(now())
 }
 
 model Departement {
-  id          String       @id @default(uuid())
-  nom         String       
-  province    Province     @relation(fields: [provinceId], references: [id])
-  provinceId  String
+  id            String         @id @default(uuid())
+  nom           String
+  province      Province       @relation(fields: [provinceId], references: [id])
+  provinceId    String
   organisations Organisation[] @relation("OrganisationDepartements")
-  updatedAt   DateTime     @updatedAt
-  createdAt   DateTime     @default(now())
+  updatedAt     DateTime       @updatedAt
+  createdAt     DateTime       @default(now())
+
   @@unique([nom, provinceId])
-  }
+}

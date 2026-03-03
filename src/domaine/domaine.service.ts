@@ -3,7 +3,8 @@ import { CreateDomaineDto } from './dto/create-domaine.dto';
 import { UpdateDomaineDto } from './dto/update-domaine.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ValidationException } from 'src/validator-app/validation.exception';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
+
 
 @Injectable()
 export class DomaineService {

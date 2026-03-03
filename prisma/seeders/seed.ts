@@ -1,8 +1,17 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../../src/generated/prisma/client';
+import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcryptjs';
+
+require('dotenv').config();
+
+const adapter = new PrismaPg({
+  connectionString: String(process.env.DATABASE_URL),
+});
+
+const prisma = new PrismaClient({ adapter });
+
 import * as XLSX from 'xlsx'; 
 
-const prisma = new PrismaClient();
 
 async function main() {
   console.log('🚀 Début du seeder...');
@@ -127,8 +136,8 @@ async function main() {
 
   await prisma.user.create({
     data: {
-      email: "hamiltondarryl24@gmail.com",
-      username: "MAHANGA Hamilton",
+      email: "admin@test.ga",
+      username: "Jhon DOE",
       activated: true,
       password: defaultPassword,
       role: { connect: { id: adminRole.id } },
@@ -137,8 +146,8 @@ async function main() {
 
   await prisma.user.create({
     data: {
-      email: "hamiltondarryl241@gmail.com",
-      username: "BOULINGUI Darryl",
+      email: "gestionnaire@test.ga",
+      username: "Jane DOE",
       activated: true,
       password: defaultPassword,
       role: { connect: { id: gestionnaireRole.id } },
@@ -157,7 +166,7 @@ async function main() {
     {
       nom: 'Haut-Ogooué',
       abreviation: 'G2',
-      departements: ['Lékoni-Lékori', 'Lékoko', 'Ogooué-Létili', 'Djouori-Agnili', 'Djoué', 'Sébé-Brikolo', 'Bayi-Brikolo', 'Lékabi-Léwolo' ,'Mpassa', 'Plateaux', 'Sébé-Brikolo']
+      departements: ['Lékoni-Lékori', 'Lékoko', 'Ogooué-Létili', 'Djouori-Agnili', 'Djoué', 'Sébé-Brikolo', 'Bayi-Brikolo', 'Lékabi-Léwolo' ,'Mpassa', 'Plateaux']
     },
     {
       nom: 'Moyen-Ogooué',
@@ -167,7 +176,7 @@ async function main() {
     {
       nom: 'Ngounié',
       abreviation: 'G4',
-      departements: ['Mougalaba', 'Boumi-Louetsi', 'Dola', 'Douya-Onoy', 'Louetsi-Wano', 'Louetsi-Bibaka', 'Ogoulou', 'Ndolou', 'Ogoulou', 'Tsamba-Magotsi']
+      departements: ['Mougalaba', 'Boumi-Louetsi', 'Dola', 'Douya-Onoy', 'Louetsi-Wano', 'Louetsi-Bibaka', 'Ogoulou', 'Ndolou', 'Tsamba-Magotsi']
     },
     {
       nom: 'Nyanga',

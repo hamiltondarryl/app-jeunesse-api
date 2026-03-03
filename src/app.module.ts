@@ -18,6 +18,7 @@ import { ProvinceModule } from './province/province.module';
 import { diskStorage } from 'multer';
 import { MulterModule } from '@nestjs/platform-express';
 import { extname } from 'path';
+import { DashbordModule } from './dashbord/dashbord.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { extname } from 'path';
     DomaineModule,
     DepartementModule,
     ProvinceModule,
+    DashbordModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

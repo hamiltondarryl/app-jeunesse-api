@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Prisma } from '@prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
 import { UpdateOrganisationDto } from './dto/update-organisation.dto';
 import { CreateOrganisationDto } from './dto/create-organisation.dto';
 
@@ -14,11 +14,17 @@ export class OrganisationService {
     console.log('📥 Données reçues:', createOrganisationDto);
     console.log('📁 Fichiers reçus:', {
       recepice: files.recepice?.[0]?.originalname,
-      pieceIdentite: files.pieceIdentite?.[0]?.originalname
+      pieceIdentiteResponsable: files.pieceIdentiteResponsable?.[0]?.originalname,
+      pieceIdentiteSecretaireGeneral : files.pieceIdentiteSecretaireGeneral?.[0]?.originalname,
+      pieceIdentiteTresorier : files.pieceIdentiteTresorier?.[0]?.originalname,
+      recepiceProvisoirOuDefinitif: files.recepiceProvisoirOuDefinitif?.[0]?.originalname,
     });
 
-    const recepicePath = files.recepice[0].path;
-    const pieceIdentitePath = files.pieceIdentite[0].path;
+    const recepicePath = files.recepice?.[0]?.path ? files.recepice[0].path : null;
+    const pieceIdentiteResponsablePath = files.pieceIdentiteResponsable[0].path;
+    const pieceIdentiteSecretaireGeneralPath = files.pieceIdentiteSecretaireGeneral[0].path;
+    const pieceIdentiteTresorierPath = files.pieceIdentiteTresorier[0].path;
+    const recepiceProvisoirOuDefinitifPath = files.recepiceProvisoirOuDefinitif[0].path;
 
     try {
       // Vérifier si l'organisation existe déjà
@@ -31,22 +37,46 @@ export class OrganisationService {
         },
       });
 
-      if (existingOrg) {
-        await this.cleanupFiles([recepicePath, pieceIdentitePath]);
-        throw new ConflictException('Une organisation avec ce nom ou sigle existe déjà');
-      }
+      /*if (existingOrg) {
+        await this.cleanupFiles([pieceIdentiteResponsablePath, pieceIdentiteSecretaireGeneralPath, pieceIdentiteTresorierPath, recepiceProvisoirOuDefinitifPath]);
+        throw new ConflictException('');
+      }*/
 
       // Vérifier si le responsable existe déjà (par email)
-      if (createOrganisationDto.responsable.email) {
+   /*   if (createOrganisationDto.responsable.email) {
         const existingResponsable = await this.prismaService.responsable.findFirst({
           where: { email: createOrganisationDto.responsable.email },
         });
 
         if (existingResponsable) {
-          await this.cleanupFiles([recepicePath, pieceIdentitePath]);
+          await this.cleanupFiles([pieceIdentiteResponsablePath, pieceIdentiteSecretaireGeneralPath, pieceIdentiteTresorierPath, recepiceProvisoirOuDefinitifPath]);
           throw new ConflictException('Un responsable avec cet email existe déjà');
         }
       }
+      
+      if (createOrganisationDto.secretaireGeneral.email) {
+        const existingSecretaireGeneral = await this.prismaService.responsable.findFirst({
+          where: { email: createOrganisationDto.secretaireGeneral.email },
+        });
+
+        if (existingSecretaireGeneral) {
+          await this.cleanupFiles([ pieceIdentiteResponsablePath, pieceIdentiteSecretaireGeneralPath, pieceIdentiteTresorierPath, recepiceProvisoirOuDefinitifPath]);
+          throw new ConflictException('Un secrétaire général avec cet email existe déjà');
+        }
+      }
+
+      if (createOrganisationDto.tresorier.email) {
+        const existingTresorier = await this.prismaService.responsable.findFirst({
+          where: { email: createOrganisationDto.tresorier.email },
+        });
+
+        if (existingTresorier) {
+          await this.cleanupFiles([pieceIdentiteResponsablePath, pieceIdentiteSecretaireGeneralPath, pieceIdentiteTresorierPath, recepiceProvisoirOuDefinitifPath]);
+          throw new ConflictException('Un trésorier avec cet email existe déjà');
+        }
+      }
+*/
+
 
       // Convertir les types si nécessaire
       const processedData = {
@@ -57,6 +87,7 @@ export class OrganisationService {
         adherents: createOrganisationDto.adherents ? parseInt(createOrganisationDto.adherents.toString()) : undefined,
         hommes: createOrganisationDto.hommes ? parseInt(createOrganisationDto.hommes.toString()) : undefined,
         femmes: createOrganisationDto.femmes ? parseInt(createOrganisationDto.femmes.toString()) : undefined,
+        rib : createOrganisationDto.rib ? createOrganisationDto.rib.toString() : undefined,
         salaries: createOrganisationDto.salaries ? parseInt(createOrganisationDto.salaries.toString()) : undefined,
         benevoles: createOrganisationDto.benevoles ? parseInt(createOrganisationDto.benevoles.toString()) : undefined,
         cotisationMensuelle: createOrganisationDto.cotisationMensuelle ? parseFloat(createOrganisationDto.cotisationMensuelle.toString()) : undefined,
@@ -65,11 +96,27 @@ export class OrganisationService {
       console.log('🔄 Données traitées:', processedData);
 
       return await this.prismaService.$transaction(async (tx) => {
+
+
         // Créer le responsable
         const responsable = await tx.responsable.create({
           data: {
             ...processedData.responsable,
-            pieceIdentite: pieceIdentitePath,
+            pieceIdentite: pieceIdentiteResponsablePath,
+          },
+        });
+
+        const secretaireGeneral = await tx.responsable.create({
+          data: {
+            ...processedData.secretaireGeneral,
+            pieceIdentite: pieceIdentiteSecretaireGeneralPath,
+          },
+        });
+
+        const tresorier = await tx.responsable.create({
+          data: {
+            ...processedData.tresorier,
+            pieceIdentite: pieceIdentiteTresorierPath,
           },
         });
 
@@ -85,7 +132,9 @@ export class OrganisationService {
             commune: processedData.commune,
             international: processedData.international,
             typeRecepice: processedData.typeRecepice,
-            recepice: recepicePath,
+            recepiceProvisoirOuDefinitif: recepiceProvisoirOuDefinitifPath,
+            rib : processedData.rib,
+            recepice: recepicePath !=null ? recepicePath : null,
             groupes: processedData.groupes,
             adherents: processedData.adherents,
             hommes: processedData.hommes,
@@ -97,6 +146,8 @@ export class OrganisationService {
             but: processedData.but,
             publicCible: processedData.publicCible,
             responsableId: responsable.id,
+            secretaireGeneralId: secretaireGeneral.id,
+            tresorierId: tresorier.id,
             domaines: {
               connect: processedData.domaines.map(id => ({ id })),
             },
@@ -116,7 +167,7 @@ export class OrganisationService {
       });
     } catch (error) {
       console.error('❌ Erreur détaillée:', error);
-      await this.cleanupFiles([recepicePath, pieceIdentitePath]);
+      await this.cleanupFiles([recepicePath, pieceIdentiteResponsablePath, pieceIdentiteSecretaireGeneralPath, pieceIdentiteTresorierPath, recepiceProvisoirOuDefinitifPath]);
 
       if (error.code === 'P2002') {
         throw new ConflictException('Violation de contrainte unique');
@@ -154,18 +205,21 @@ export class OrganisationService {
     }
   }
 
-  async search(page: number = 1, limit: number = 10, searchQuery: string = '') {
+  async search(page: number = 1, limit: number = 10, activated : string = "true" ,searchQuery: string = '') {
     try {
       const skip = (page - 1) * limit;
-      const where = searchQuery
+     const where = {
+      activated: activated === "true" ? true : false,
+      ...(searchQuery
         ? {
-          OR: [
-            { nom: { contains: searchQuery, mode: 'insensitive' as Prisma.QueryMode } },
-            { sigle: { contains: searchQuery, mode: 'insensitive' as Prisma.QueryMode } },
-            { commune: { contains: searchQuery, mode: 'insensitive' as Prisma.QueryMode } },
-          ],
-        }
-        : {};
+            OR: [
+              { nom: { contains: searchQuery, mode: 'insensitive' as Prisma.QueryMode } },
+              { sigle: { contains: searchQuery, mode: 'insensitive' as Prisma.QueryMode } },
+              { commune: { contains: searchQuery, mode: 'insensitive' as Prisma.QueryMode } },
+            ],
+          }
+        : {})
+    };
 
       const [items, total] = await Promise.all([
         this.prismaService.organisation.findMany({
@@ -192,6 +246,7 @@ export class OrganisationService {
       throw new InternalServerErrorException('Erreur lors de la recherche des organisations');
     }
   }
+
 
   async findByDomaineId(domaineId: string) {
     try {
@@ -284,335 +339,354 @@ export class OrganisationService {
     }
   }
 
+  async activeOrganisation(id: string) {
+    try {
+      const organisation = await this.prismaService.organisation.findUnique({
+        where: { id },
+      });
+
+      if (!organisation) {
+        throw new NotFoundException('Organisation non trouvée');
+      }
+
+      const updatedOrganisation = await this.prismaService.organisation.update({
+        where: { id },
+        data: { activated: organisation.activated ? false : true },
+      });
+
+      return updatedOrganisation;
+    } catch (error) {
+      throw new InternalServerErrorException('Erreur lors de l\'activation de l\'organisation');
+    }
+  }
+
   private getIncludeRelations() {
     return {
       responsable: true,
+      tresorier: true,
+      secretaireGeneral: true,
       domaines: true,
       departements: { include: { province: true } },
     };
   }
 
   async getOrganisationsCountByDepartement(provinceAbreviation: string, domaineId?: string) {
+  try {
+    // Construire le where conditionnel pour les départements
+    const departementWhere = {
+      province: {
+        abreviation: provinceAbreviation
+      }
+    };
 
-    try {
-      // Construire le where conditionnel pour les départements
-      const departementWhere = {
-        province: {
-          abreviation: provinceAbreviation
-        }
-      };
-
-      // Construire le where conditionnel pour les organisations
-      const organisationWhere = domaineId ? {
+    // Construire le where conditionnel pour les organisations
+    // AJOUTER activated: true
+    const organisationWhere = {
+      activated: true, // ◀◀◀ AJOUTER CETTE LIGNE
+      ...(domaineId ? {
         domaines: {
           some: {
             id: domaineId
           }
         }
-      } : {};
+      } : {})
+    };
 
-      const result = await this.prismaService.departement.findMany({
-        where: departementWhere,
-        include: {
-          province: {
-            select: {
-              nom: true,
-              abreviation: true
-            }
-          },
-          _count: {
-            select: {
-              organisations: {
-                where: organisationWhere
-              }
-            }
-          },
-          // Ajouter TOUTES les informations des organisations
-          organisations: {
-            where: organisationWhere,
-            include: {
-              // Inclure toutes les relations de l'organisation
-              responsable: true,
-              domaines: true,
-              departements: {
-                include: {
-                  province: true
-                }
-              }
-              // Tous les champs de l'organisation sont inclus par défaut
+    const result = await this.prismaService.departement.findMany({
+      where: departementWhere,
+      include: {
+        province: {
+          select: {
+            nom: true,
+            abreviation: true
+          }
+        },
+        _count: {
+          select: {
+            organisations: {
+              where: organisationWhere // Utiliser le nouveau where
             }
           }
         },
-        orderBy: {
-          nom: 'asc'
-        }
-      });
-
-      // Formater la réponse avec toutes les informations des organisations
-      const formattedResult = result.map(departement => ({
-        departementId: departement.id,
-        departementNom: departement.nom,
-        provinceNom: departement.province.nom,
-        provinceAbreviation: departement.province.abreviation,
-        nombreOrganisations: departement._count.organisations,
-        // Ajouter la liste COMPLÈTE des organisations
-        organisations: departement.organisations.map(org => ({
-          // Tous les champs de base de l'organisation
-          id: org.id,
-          nom: org.nom,
-          sigle: org.sigle,
-          type: org.type,
-          anneeCreation: org.anneeCreation,
-          agrementTechniqueDelivred: org.agrementTechniqueDelivred,
-          adresse: org.adresse,
-          commune: org.commune,
-          international: org.international,
-          typeRecepice: org.typeRecepice,
-          recepice: org.recepice,
-          groupes: org.groupes,
-          adherents: org.adherents,
-          hommes: org.hommes,
-          femmes: org.femmes,
-          salaries: org.salaries,
-          benevoles: org.benevoles,
-          cotisationMensuelle: org.cotisationMensuelle,
-          partenaires: org.partenaires,
-          but: org.but,
-          publicCible: org.publicCible,
-          activated: org.activated,
-          createdAt: org.createdAt,
-          updatedAt: org.updatedAt,
-
-          // Responsable complet
-          responsable: org.responsable ? {
-            id: org.responsable.id,
-            nom: org.responsable.nom,
-            age: org.responsable.age,
-            nationalite: org.responsable.nationalite,
-            situation: org.responsable.situation,
-            telephone: org.responsable.telephone,
-            email: org.responsable.email,
-            adresse: org.responsable.adresse,
-            pieceIdentite: org.responsable.pieceIdentite,
-            createdAt: org.responsable.createdAt,
-            updatedAt: org.responsable.updatedAt
-          } : null,
-
-          // Domaines complets
-          domaines: org.domaines.map(domaine => ({
-            id: domaine.id,
-            nom: domaine.nom,
-            createdAt: domaine.createdAt,
-            updatedAt: domaine.updatedAt
-          })),
-
-          // Départements complets avec provinces
-          departements: org.departements.map(dept => ({
-            id: dept.id,
-            nom: dept.nom,
-            createdAt: dept.createdAt,
-            updatedAt: dept.updatedAt,
-            province: {
-              id: dept.province.id,
-              nom: dept.province.nom,
-              abreviation: dept.province.abreviation,
-              createdAt: dept.province.createdAt,
-              updatedAt: dept.province.updatedAt
+        organisations: {
+          where: organisationWhere, // Utiliser le nouveau where
+          include: {
+            responsable: true,
+            domaines: true,
+            departements: {
+              include: {
+                province: true
+              }
             }
-          }))
+          }
+        }
+      },
+      orderBy: {
+        nom: 'asc'
+      }
+    });
+
+    // Le reste du code reste identique...
+    // Formater la réponse avec toutes les informations des organisations
+    const formattedResult = result.map(departement => ({
+      departementId: departement.id,
+      departementNom: departement.nom,
+      provinceNom: departement.province.nom,
+      provinceAbreviation: departement.province.abreviation,
+      nombreOrganisations: departement._count.organisations,
+      organisations: departement.organisations.map(org => ({
+        id: org.id,
+        nom: org.nom,
+        sigle: org.sigle,
+        type: org.type,
+        anneeCreation: org.anneeCreation,
+        agrementTechniqueDelivred: org.agrementTechniqueDelivred,
+        adresse: org.adresse,
+        commune: org.commune,
+        international: org.international,
+        typeRecepice: org.typeRecepice,
+        recepice: org.recepice,
+        groupes: org.groupes,
+        adherents: org.adherents,
+        hommes: org.hommes,
+        femmes: org.femmes,
+        salaries: org.salaries,
+        benevoles: org.benevoles,
+        cotisationMensuelle: org.cotisationMensuelle,
+        partenaires: org.partenaires,
+        but: org.but,
+        publicCible: org.publicCible,
+        activated: org.activated, // Ce sera toujours true maintenant
+        createdAt: org.createdAt,
+        updatedAt: org.updatedAt,
+
+        responsable: org.responsable ? {
+          id: org.responsable.id,
+          nom: org.responsable.nom,
+          age: org.responsable.age,
+          nationalite: org.responsable.nationalite,
+          situation: org.responsable.situation,
+          telephone: org.responsable.telephone,
+          email: org.responsable.email,
+          adresse: org.responsable.adresse,
+          pieceIdentite: org.responsable.pieceIdentite,
+          createdAt: org.responsable.createdAt,
+          updatedAt: org.responsable.updatedAt
+        } : null,
+
+        domaines: org.domaines.map(domaine => ({
+          id: domaine.id,
+          nom: domaine.nom,
+          createdAt: domaine.createdAt,
+          updatedAt: domaine.updatedAt
+        })),
+
+        departements: org.departements.map(dept => ({
+          id: dept.id,
+          nom: dept.nom,
+          createdAt: dept.createdAt,
+          updatedAt: dept.updatedAt,
+          province: {
+            id: dept.province.id,
+            nom: dept.province.nom,
+            abreviation: dept.province.abreviation,
+            createdAt: dept.province.createdAt,
+            updatedAt: dept.province.updatedAt
+          }
         }))
-      }));
+      }))
+    }));
 
-      const totalOrganisations = formattedResult.reduce((sum, item) => sum + item.nombreOrganisations, 0);
+    const totalOrganisations = formattedResult.reduce((sum, item) => sum + item.nombreOrganisations, 0);
 
-      return {
-        province: provinceAbreviation,
-        domaineId: domaineId || null,
-        totalOrganisations: totalOrganisations,
-        departements: formattedResult
-      };
-    } catch (error) {
-      console.error('Erreur lors du comptage des organisations par département:', error);
-      throw new InternalServerErrorException('Erreur lors de la récupération des statistiques');
-    }
+    return {
+      province: provinceAbreviation,
+      domaineId: domaineId || null,
+      totalOrganisations: totalOrganisations,
+      departements: formattedResult
+    };
+  } catch (error) {
+    console.error('Erreur lors du comptage des organisations par département:', error);
+    throw new InternalServerErrorException('Erreur lors de la récupération des statistiques');
   }
+}
 
   async searchOrganisationsByDepartement(searchTerm: string, domaineId?: string) {
-    try {
-      // Construire le where conditionnel pour les départements avec recherche textuelle
-      const departementWhere = {
-        OR: [
-          {
+  try {
+    // Construire le where conditionnel pour les départements avec recherche textuelle
+    const departementWhere = {
+      OR: [
+        {
+          nom: {
+            contains: searchTerm,
+            mode: 'insensitive' as const
+          }
+        },
+        {
+          province: {
             nom: {
               contains: searchTerm,
               mode: 'insensitive' as const
             }
-          },
-          {
-            province: {
-              nom: {
-                contains: searchTerm,
-                mode: 'insensitive' as const
-              }
-            }
-          },
-          {
-            province: {
-              abreviation: {
-                contains: searchTerm,
-                mode: 'insensitive' as const
-              }
+          }
+        },
+        {
+          province: {
+            abreviation: {
+              contains: searchTerm,
+              mode: 'insensitive' as const
             }
           }
-        ]
-      };
+        }
+      ]
+    };
 
-      // Construire le where conditionnel pour les organisations
-      const organisationWhere = domaineId ? {
+    // Construire le where conditionnel pour les organisations
+    // AJOUTER activated: true
+    const organisationWhere = {
+      activated: true, // ◀◀◀ AJOUTER CETTE LIGNE
+      ...(domaineId ? {
         domaines: {
           some: {
             id: domaineId
           }
         }
-      } : {};
+      } : {})
+    };
 
-      const result = await this.prismaService.departement.findMany({
-        where: departementWhere,
-        include: {
-          province: {
-            select: {
-              nom: true,
-              abreviation: true
-            }
-          },
-          _count: {
-            select: {
-              organisations: {
-                where: organisationWhere
-              }
-            }
-          },
-          // Ajouter TOUTES les informations des organisations
-          organisations: {
-            where: organisationWhere,
-            include: {
-              // Inclure toutes les relations de l'organisation
-              responsable: true,
-              domaines: true,
-              departements: {
-                include: {
-                  province: true
-                }
-              }
+    const result = await this.prismaService.departement.findMany({
+      where: departementWhere,
+      include: {
+        province: {
+          select: {
+            nom: true,
+            abreviation: true
+          }
+        },
+        _count: {
+          select: {
+            organisations: {
+              where: organisationWhere // Utiliser le nouveau where
             }
           }
         },
-        orderBy: {
-          nom: 'asc'
-        }
-      });
-
-      // Formater la réponse avec toutes les informations des organisations
-      const formattedResult = result.map(departement => ({
-        departementId: departement.id,
-        departementNom: departement.nom,
-        provinceNom: departement.province.nom,
-        provinceAbreviation: departement.province.abreviation,
-        nombreOrganisations: departement._count.organisations,
-        // Ajouter la liste COMPLÈTE des organisations
-        organisations: departement.organisations.map(org => ({
-          // Tous les champs de base de l'organisation
-          id: org.id,
-          nom: org.nom,
-          sigle: org.sigle,
-          type: org.type,
-          anneeCreation: org.anneeCreation,
-          agrementTechniqueDelivred: org.agrementTechniqueDelivred,
-          adresse: org.adresse,
-          commune: org.commune,
-          international: org.international,
-          typeRecepice: org.typeRecepice,
-          recepice: org.recepice,
-          groupes: org.groupes,
-          adherents: org.adherents,
-          hommes: org.hommes,
-          femmes: org.femmes,
-          salaries: org.salaries,
-          benevoles: org.benevoles,
-          cotisationMensuelle: org.cotisationMensuelle,
-          partenaires: org.partenaires,
-          but: org.but,
-          publicCible: org.publicCible,
-          activated: org.activated,
-          createdAt: org.createdAt,
-          updatedAt: org.updatedAt,
-
-          // Responsable complet
-          responsable: org.responsable ? {
-            id: org.responsable.id,
-            nom: org.responsable.nom,
-            age: org.responsable.age,
-            nationalite: org.responsable.nationalite,
-            situation: org.responsable.situation,
-            telephone: org.responsable.telephone,
-            email: org.responsable.email,
-            adresse: org.responsable.adresse,
-            pieceIdentite: org.responsable.pieceIdentite,
-            createdAt: org.responsable.createdAt,
-            updatedAt: org.responsable.updatedAt
-          } : null,
-
-          // Domaines complets
-          domaines: org.domaines.map(domaine => ({
-            id: domaine.id,
-            nom: domaine.nom,
-            createdAt: domaine.createdAt,
-            updatedAt: domaine.updatedAt
-          })),
-
-          // Départements complets avec provinces
-          departements: org.departements.map(dept => ({
-            id: dept.id,
-            nom: dept.nom,
-            createdAt: dept.createdAt,
-            updatedAt: dept.updatedAt,
-            province: {
-              id: dept.province.id,
-              nom: dept.province.nom,
-              abreviation: dept.province.abreviation,
-              createdAt: dept.province.createdAt,
-              updatedAt: dept.province.updatedAt
+        organisations: {
+          where: organisationWhere, // Utiliser le nouveau where
+          include: {
+            responsable: true,
+            domaines: true,
+            departements: {
+              include: {
+                province: true
+              }
             }
-          }))
+          }
+        }
+      },
+      orderBy: {
+        nom: 'asc'
+      }
+    });
+
+    // Le reste du code reste identique...
+    const formattedResult = result.map(departement => ({
+      departementId: departement.id,
+      departementNom: departement.nom,
+      provinceNom: departement.province.nom,
+      provinceAbreviation: departement.province.abreviation,
+      nombreOrganisations: departement._count.organisations,
+      organisations: departement.organisations.map(org => ({
+        id: org.id,
+        nom: org.nom,
+        sigle: org.sigle,
+        type: org.type,
+        anneeCreation: org.anneeCreation,
+        agrementTechniqueDelivred: org.agrementTechniqueDelivred,
+        adresse: org.adresse,
+        commune: org.commune,
+        international: org.international,
+        typeRecepice: org.typeRecepice,
+        recepice: org.recepice,
+        groupes: org.groupes,
+        adherents: org.adherents,
+        hommes: org.hommes,
+        femmes: org.femmes,
+        salaries: org.salaries,
+        benevoles: org.benevoles,
+        cotisationMensuelle: org.cotisationMensuelle,
+        partenaires: org.partenaires,
+        but: org.but,
+        publicCible: org.publicCible,
+        activated: org.activated, // Toujours true
+        createdAt: org.createdAt,
+        updatedAt: org.updatedAt,
+
+        responsable: org.responsable ? {
+          id: org.responsable.id,
+          nom: org.responsable.nom,
+          age: org.responsable.age,
+          nationalite: org.responsable.nationalite,
+          situation: org.responsable.situation,
+          telephone: org.responsable.telephone,
+          email: org.responsable.email,
+          adresse: org.responsable.adresse,
+          pieceIdentite: org.responsable.pieceIdentite,
+          createdAt: org.responsable.createdAt,
+          updatedAt: org.responsable.updatedAt
+        } : null,
+
+        domaines: org.domaines.map(domaine => ({
+          id: domaine.id,
+          nom: domaine.nom,
+          createdAt: domaine.createdAt,
+          updatedAt: domaine.updatedAt
+        })),
+
+        departements: org.departements.map(dept => ({
+          id: dept.id,
+          nom: dept.nom,
+          createdAt: dept.createdAt,
+          updatedAt: dept.updatedAt,
+          province: {
+            id: dept.province.id,
+            nom: dept.province.nom,
+            abreviation: dept.province.abreviation,
+            createdAt: dept.province.createdAt,
+            updatedAt: dept.province.updatedAt
+          }
         }))
-      }));
+      }))
+    }));
 
-      const totalOrganisations = formattedResult.reduce((sum, item) => sum + item.nombreOrganisations, 0);
+    const totalOrganisations = formattedResult.reduce((sum, item) => sum + item.nombreOrganisations, 0);
 
-      return {
-        searchTerm: searchTerm,
-        domaineId: domaineId || null,
-        totalOrganisations: totalOrganisations,
-        totalDepartements: formattedResult.length,
-        departements: formattedResult
-      };
-    } catch (error) {
-      console.error('Erreur lors de la recherche des organisations par département:', error);
-      throw new InternalServerErrorException('Erreur lors de la recherche des organisations');
-    }
+    return {
+      searchTerm: searchTerm,
+      domaineId: domaineId || null,
+      totalOrganisations: totalOrganisations,
+      totalDepartements: formattedResult.length,
+      departements: formattedResult
+    };
+  } catch (error) {
+    console.error('Erreur lors de la recherche des organisations par département:', error);
+    throw new InternalServerErrorException('Erreur lors de la recherche des organisations');
   }
+}
 
 async getOrganisationsCountByProvince(domaineId?: string) {
   try {
-    const organisationWhere = domaineId ? {
-      domaines: {
-        some: {
-          id: domaineId
+    // AJOUTER activated: true
+    const organisationWhere = {
+      activated: true, // ◀◀◀ AJOUTER CETTE LIGNE
+      ...(domaineId ? {
+        domaines: {
+          some: {
+            id: domaineId
+          }
         }
-      }
-    } : {};
+      } : {})
+    };
 
-    // REQUÊTE OPTIMISÉE : Compter directement les organisations uniques par province
     const provinces = await this.prismaService.province.findMany({
       select: {
         id: true,
@@ -625,13 +699,12 @@ async getOrganisationsCountByProvince(domaineId?: string) {
             _count: {
               select: {
                 organisations: {
-                  where: organisationWhere
+                  where: organisationWhere // Utiliser le nouveau where
                 }
               }
             },
-            // Pour le compte exact par province, on récupère les IDs
             organisations: {
-              where: organisationWhere,
+              where: organisationWhere, // Utiliser le nouveau where
               select: {
                 id: true
               }
@@ -645,7 +718,6 @@ async getOrganisationsCountByProvince(domaineId?: string) {
     });
 
     const formattedResult = provinces.map(province => {
-      // Calcul du nombre EXACT d'organisations uniques dans la province
       const tousIdsOrganisations = province.departements.flatMap(
         dept => dept.organisations.map(org => org.id)
       );
@@ -656,12 +728,12 @@ async getOrganisationsCountByProvince(domaineId?: string) {
         provinceId: province.id,
         provinceNom: province.nom,
         provinceAbreviation: province.abreviation,
-        nombreOrganisations: nombreExact, // ◀◀◀ NOMBRE EXACT
+        nombreOrganisations: nombreExact,
         nombreDepartements: province.departements.length,
         departements: province.departements.map(dept => ({
           departementId: dept.id,
           departementNom: dept.nom,
-          nombreOrganisations: dept._count.organisations // Présences dans le département
+          nombreOrganisations: dept._count.organisations
         }))
       };
     });
@@ -670,7 +742,7 @@ async getOrganisationsCountByProvince(domaineId?: string) {
 
     return {
       domaineId: domaineId || null,
-      totalOrganisations: totalOrganisationsExact, // ◀◀◀ TOTAL EXACT
+      totalOrganisations: totalOrganisationsExact,
       totalProvinces: formattedResult.length,
       provinces: formattedResult
     };

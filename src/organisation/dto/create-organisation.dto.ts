@@ -32,6 +32,11 @@ class CreateResponsableDto {
   @IsString()
   situation?: string;
 
+  @ApiProperty({ description: "Situation matrimoniale", required: false })
+  @IsOptional()
+  @IsString()
+  situationMatrimoniale?: string;
+
   @ApiProperty({ description: "Téléphone du responsable", required: false })
   @IsOptional()
   @IsString()
@@ -62,6 +67,11 @@ export class CreateOrganisationDto {
   @IsOptional()
   @IsString()
   type?: string;
+
+  @ApiProperty({ description: "Rib de l'association", required: false })
+  @IsOptional()
+  @IsString()
+  rib?: string;
 
   @ApiProperty({ description: "Année de création", required: false })
   @IsOptional()
@@ -163,6 +173,16 @@ export class CreateOrganisationDto {
   @ValidateNested()
   @Type(() => CreateResponsableDto)
   responsable: CreateResponsableDto;
+
+  @ApiProperty({ description: "Informations du secretaire general" })
+  @ValidateNested()
+  @Type(() => CreateResponsableDto)
+  secretaireGeneral: CreateResponsableDto;
+
+  @ApiProperty({ description: "Informations du tresorier" })
+  @ValidateNested()
+  @Type(() => CreateResponsableDto)
+  tresorier: CreateResponsableDto;
 }
 
 
@@ -180,7 +200,29 @@ export class PublicCreateOrganisationDto {
     format: 'binary',
     description: 'Fichier piece identite (JPEG, PNG, PDF - max 5MB)' 
   })
-  pieceIdentite: any;
+  pieceIdentiteResponsable: any;
+
+
+  @ApiProperty({ 
+    type: 'string', 
+    format: 'binary',
+    description: 'Fichier piece identite du secretaire general (JPEG, PNG, PDF - max 5MB)' 
+  })
+  pieceIdentiteSecretaireGeneral: any;
+
+  @ApiProperty({ 
+    type: 'string', 
+    format: 'binary',
+    description: 'Fichier piece identite du tresorier (JPEG, PNG, PDF - max 5MB)' 
+  })
+  pieceIdentiteTresorier: any;
+
+  @ApiProperty({ 
+    type: 'string', 
+    format: 'binary',
+    description: 'Fichier recepice provisoir ou definitif (JPEG, PNG, PDF - max 5MB)' 
+  })
+  recepiceProvisoirOuDefinitif: any;
 
   @ApiProperty({ 
     description: "Données de l'organisation au format JSON",
@@ -194,6 +236,7 @@ export class PublicCreateOrganisationDto {
   "commune": "Ma Commune",
   "international": false,
   "typeRecepice": "Type A",
+  "rib" : "FR76 1234 5678 9012 3456 7890 123",
   "groupes": 5,
   "adherents": 100,
   "hommes": 60,
@@ -214,6 +257,24 @@ export class PublicCreateOrganisationDto {
     "telephone": "+1234567890",
     "email": "john@example.com",
     "adresse": "456 Rue Responsable"
+  },
+  "secretaireGeneral": {
+    "nom": "Jane Smith",
+    "age": 30,
+    "nationalite": "Française",
+    "situation": "Célibataire",
+    "telephone": "+0987654321",
+    "email": "jane@example.com",
+    "adresse": "789 Rue Secretaire"
+  },
+  "tresorier": {
+    "nom": "Alice Johnson",
+    "age": 40,
+    "nationalite": "Française",
+    "situation": "Divorcée",
+    "telephone": "+1122334455",
+    "email": "alice@example.com",
+    "adresse": "101 Rue Tresorier"
   }
 }`
   })

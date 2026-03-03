@@ -4,8 +4,9 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ActivityLogService } from 'src/activity-log/activity-log.service';
 import * as bcrypt from 'bcryptjs';
-import { ActionType, Prisma } from '@prisma/client';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { ActionType } from 'src/generated/prisma/client';
+import { Prisma } from 'src/generated/prisma/client';
+import { PrismaClientKnownRequestError } from '../../src/generated/prisma/internal/prismaNamespace';
 import { ValidationException } from 'src/validator-app/validation.exception';
 
 @Injectable()

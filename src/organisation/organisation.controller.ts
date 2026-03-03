@@ -1,14 +1,15 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, UseGuards, UploadedFiles, BadRequestException, UseInterceptors, Query } from '@nestjs/common';
 import { OrganisationService } from './organisation.service';
 import { ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Permissions } from 'src/auth/guards/permissions.decorator';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { PermissionsGuard } from 'src/auth/guards/permissions.guard';
 import { extname } from 'path';
 import { diskStorage } from 'multer';
 import { FileFieldsInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { UpdateOrganisationDto } from './dto/update-organisation.dto';
 import { CreateOrganisationDto, PublicCreateOrganisationDto } from './dto/create-organisation.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from 'src/auth/guards/permissions.guard';
+import { Permissions } from 'src/auth/guards/permissions.decorator';
+
 
 
 @ApiTags("Gestion des organisations")
@@ -27,7 +28,10 @@ export class OrganisationController {
   @Post('inscription')
   @UseInterceptors(FileFieldsInterceptor([
     { name: 'recepice', maxCount: 1 },
-    { name: 'pieceIdentite', maxCount: 1 }
+    { name: 'pieceIdentiteResponsable', maxCount: 1 },
+    { name: 'pieceIdentiteSecretaireGeneral', maxCount: 1 },
+    { name: 'pieceIdentiteTresorier', maxCount: 1 },
+    {name: 'recepiceProvisoirOuDefinitif', maxCount: 1}
   ], {
     storage: diskStorage({
       destination: './uploads/organisations/public',
@@ -56,15 +60,28 @@ export class OrganisationController {
     @Body() createOrganisationDto: PublicCreateOrganisationDto,
     @UploadedFiles() files: {
       recepice?: Express.Multer.File[],
-      pieceIdentite?: Express.Multer.File[]
+      pieceIdentiteResponsable?: Express.Multer.File[],
+      pieceIdentiteSecretaireGeneral?: Express.Multer.File[],
+      pieceIdentiteTresorier?: Express.Multer.File[],
+      recepiceProvisoirOuDefinitif?: Express.Multer.File[]
     }
   ) {
     // Validation des fichiers
-    if (!files.recepice?.[0]) {
-      throw new BadRequestException('Le fichier recepice est obligatoire');
-    }
-    if (!files.pieceIdentite?.[0]) {
+    
+    if (!files.pieceIdentiteResponsable?.[0]) {
       throw new BadRequestException('Le fichier pieceIdentite est obligatoire');
+    }
+
+    if (!files.pieceIdentiteSecretaireGeneral?.[0]) {
+      throw new BadRequestException('Le fichier pieceIdentite du secretaire general est obligatoire');
+    }
+
+    if (!files.pieceIdentiteTresorier?.[0]) {
+      throw new BadRequestException('Le fichier pieceIdentite du tresorier est obligatoire');
+    } 
+
+    if (!files.recepiceProvisoirOuDefinitif?.[0]) {
+      throw new BadRequestException('Le fichier recepiceProvisoirOuDefinitif est obligatoire');
     }
 
     // Parser les données JSON
@@ -116,14 +133,14 @@ export class OrganisationController {
   }
 
 
-@ApiOperation({ summary: "Nombre d'associations par province avec filtre domaine optionnel" })
-@HttpCode(HttpStatus.OK)
-@Get('stats/provinces')
-async getOrganisationsCountByProvince(
-  @Query('domaineId') domaineId?: string
-) {
-  return this.organisationService.getOrganisationsCountByProvince(domaineId);
-}
+  @ApiOperation({ summary: "Nombre d'associations par province avec filtre domaine optionnel" })
+  @HttpCode(HttpStatus.OK)
+  @Get('stats/provinces')
+  async getOrganisationsCountByProvince(
+    @Query('domaineId') domaineId?: string
+  ) {
+    return this.organisationService.getOrganisationsCountByProvince(domaineId);
+  }
 
 
   @ApiOperation({ summary: "Récuperation des organisations" })
@@ -136,8 +153,18 @@ async getOrganisationsCountByProvince(
   @ApiOperation({ summary: "Récuperation des organisations avec filtre" })
   @HttpCode(HttpStatus.OK)
   @Get('search')
-  search(@Param('page') page: number, @Param('limit') limit: number, @Param('searchQuery') searchQuery: string) {
-    return this.organisationService.search(page, limit, searchQuery);
+  search(@Param('page') page: number, @Param('limit') limit: number,@Query('activated') activated: string, @Param('searchQuery') searchQuery: string, ) {
+    return this.organisationService.search(page, limit, activated, searchQuery, );
+  }
+
+
+  @ApiOperation({ summary: "Récuperation des organisations avec filtre" })
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('LIST_ORGANISATION') // La permission requise
+  @HttpCode(HttpStatus.OK)
+  @Get('searchPrivate')
+  searchPrivate(@Param('page') page: number, @Param('limit') limit: number, @Query('activated') activated: string,@Param('searchQuery') searchQuery: string) {
+    return this.organisationService.search(page, limit, activated, searchQuery);
   }
 
   @ApiOperation({ summary: "Récuperation des organisations par domaine" })
@@ -170,5 +197,12 @@ async getOrganisationsCountByProvince(
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.organisationService.remove(id);
+  }
+
+  @ApiOperation({ summary: "Activation d'une organisation" })
+  @HttpCode(HttpStatus.OK)
+  @Patch('activate/:id')
+  activate(@Param('id') id: string) {
+    return this.organisationService.activeOrganisation(id);
   }
 }

@@ -1,10 +1,7 @@
 
-## Description du Projet : DIWA
+## Description du Projet : Application de la jeunesse
 
-L'application mobile des DIGIEWOMEN AWARDS 2025 doit être un outil robuste,
-intuitif et sécurisé pour gérer les candidatures et les annotations. Elle doit
-également être conçue pour être réutilisable chaque année, avec des mises à
-jour minimales.
+L'application permet de gerer les associations 
 
 ## Installation
 
