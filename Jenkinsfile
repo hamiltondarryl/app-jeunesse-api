@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        DATABASE_URL = credentials('prod-db-url')
+        DATABASE_URL = 'postgresql://hamilton:victoire241@@localhost/pamj_db?schema=public'
         APP_DIR = '/var/www/pamj-backend'
         JWT_SECRET = '3044ab364298dd4b91bbc1a246823c5b2a833bd325e5d6d6023798c72a8a5137a4ca480f6b0c53ed0a1782e1032bced975c28a13516474d4b0e1a52b8ee52490'
         APP_STATUS = 'DEV'
@@ -14,6 +14,7 @@ pipeline {
         MAIL_PORT = '2525'
         MAIL_USER = '9d9c67c6e946f7'
         MAIL_PASS = '96023102deb97c'
+
     }
 
     stages {
@@ -23,7 +24,6 @@ pipeline {
                     // Affiche les variables (les secrets seront masqués automatiquement)
                     echo "=== VÉRIFICATION DES VARIABLES D'ENVIRONNEMENT ==="
                     echo "APP_DIR = ${env.APP_DIR}"
-                    echo "APP_DIR = ${credentials('prod-db-url')}"
                     echo "APP_STATUS = ${env.APP_STATUS}"
                     echo "MAIL_HOST = ${env.MAIL_HOST}"
                     echo "MAIL_PORT = ${env.MAIL_PORT}"
