@@ -13,10 +13,41 @@ pipeline {
         MAIL_HOST ='sandbox.smtp.mailtrap.io'
         MAIL_PORT = '2525'
         MAIL_USER = '9d9c67c6e946f7'
-        MAIL_PASS = '96023102deb97c
+        MAIL_PASS = '96023102deb97c'
     }
 
     stages {
+        stage('Debug - Vérification des variables') {
+            steps {
+                script {
+                    // Affiche les variables (les secrets seront masqués automatiquement)
+                    echo "=== VÉRIFICATION DES VARIABLES D'ENVIRONNEMENT ==="
+                    echo "APP_DIR = ${env.APP_DIR}"
+                    echo "APP_STATUS = ${env.APP_STATUS}"
+                    echo "MAIL_HOST = ${env.MAIL_HOST}"
+                    echo "MAIL_PORT = ${env.MAIL_PORT}"
+                    
+                    // Vérification de DATABASE_URL (devrait être masquée)
+                    if (env.DATABASE_URL) {
+                        echo "✅ DATABASE_URL est définie (valeur masquée)"
+                    } else {
+                        echo "❌ DATABASE_URL n'est pas définie"
+                    }
+                    
+                    // Vérification des credentials Mailtrap
+                    if (env.MAIL_USER) {
+                        echo "MAIL_USER = ${env.MAIL_USER}" // Sera affiché en clair !
+                    }
+                    if (env.MAIL_PASS) {
+                        echo "✅ MAIL_PASS est définie (valeur masquée automatiquement)"
+                    }
+                    
+                    // Afficher TOUTES les variables d'env (debug uniquement)
+                    sh 'printenv | sort'
+                }
+            }
+        }
+
         stage('Checkout') {
             steps {
                 git branch: 'main',
