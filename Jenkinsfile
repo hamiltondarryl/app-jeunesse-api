@@ -69,12 +69,6 @@ pipeline {
             }
         }
 
-        stage('Run Database Migrations') {
-            steps {
-                sh 'npx prisma migrate deploy'
-            }
-        }
-
         stage('Build') {
             steps {
                 sh 'npm run build'
