@@ -82,6 +82,10 @@ pipeline {
                     sh "cp -r dist package.json package-lock.json prisma ${APP_DIR}/"
                     sh "cd ${APP_DIR} && npm ci --legacy-peer-deps"
                     sh "cd ${APP_DIR} && npx prisma generate"
+
+                    // Chemin absolu pour Node.js v24.14.0
+                    def pm2Path = "/root/.nvm/versions/node/v24.14.0/lib/node_modules/pm2/bin/pm2"
+            
                     sh "pm2 delete pamj-backend || true"
                     sh "cd ${APP_DIR} && pm2 start dist/src/main.js --name pamj-backend"
                     sh "pm2 save"
