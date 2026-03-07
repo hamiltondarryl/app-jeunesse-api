@@ -80,7 +80,7 @@ pipeline {
                 script {
                     sh "mkdir -p ${APP_DIR}"
                     sh "cp -r dist package.json package-lock.json prisma ${APP_DIR}/"
-                    sh "cd ${APP_DIR} && npm ci --only=production"
+                    sh "cd ${APP_DIR} && npm ci --legacy-peer-deps"
                     sh "cd ${APP_DIR} && npx prisma generate"
                     sh "pm2 delete pamj-backend || true"
                     sh "cd ${APP_DIR} && pm2 start dist/src/main.js --name pamj-backend"
