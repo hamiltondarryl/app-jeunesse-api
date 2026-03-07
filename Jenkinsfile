@@ -78,18 +78,29 @@ pipeline {
       stage('Deploy') {
     steps {
         script {
-            def NODE_PATH = "/root/.nvm/versions/node/v24.14.0/bin"
-            def PM2 = "${NODE_PATH}/pm2"
-            def NODE = "${NODE_PATH}/node"
-            
             sh "mkdir -p ${APP_DIR}"
             sh "cp -r dist package.json package-lock.json prisma ${APP_DIR}/"
-            sh "cd ${APP_DIR} && ${NODE} ${NODE_PATH}/npm ci --legacy-peer-deps"
-            sh "cd ${APP_DIR} && ${NODE} ${NODE_PATH}/npx prisma generate"
-
-            sh "${PM2} delete pamj-backend || true"
-            sh "cd ${APP_DIR} && ${PM2} start dist/src/main.js --name pamj-backend"
-            sh "${PM2} save"
+            
+            // ✅ CRÉATION DU FICHIER .env AVEC LA BONNE URL
+            sh """
+                cd ${APP_DIR}
+                echo 'DATABASE_URL="postgresql://hamilton:victoire241@@localhost/pamj_db?schema=public"' > .env
+                echo 'JWT_SECRET=${JWT_SECRET}' >> .env
+                echo 'APP_STATUS=${APP_STATUS}' >> .env
+                echo 'MAIL_HOST=${MAIL_HOST}' >> .env
+                echo 'MAIL_PORT=${MAIL_PORT}' >> .env
+                echo 'MAIL_USER=${MAIL_USER}' >> .env
+                echo 'MAIL_PASS=${MAIL_PASS}' >> .env
+            """
+            
+            sh "cd ${APP_DIR} && npm ci --legacy-peer-deps"
+            sh "cd ${APP_DIR} && npx prisma generate"
+            
+            def pm2Path = "/root/.nvm/versions/node/v24.14.0/bin/pm2"
+            
+            sh "${pm2Path} delete main || true"
+            sh "cd ${APP_DIR} && ${pm2Path} start dist/src/main.js --name main --update-env"
+            sh "${pm2Path} save"
         }
     }
 }
