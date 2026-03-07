@@ -23,6 +23,7 @@ pipeline {
                     // Affiche les variables (les secrets seront masqués automatiquement)
                     echo "=== VÉRIFICATION DES VARIABLES D'ENVIRONNEMENT ==="
                     echo "APP_DIR = ${env.APP_DIR}"
+                    echo "APP_DIR = ${credentials('prod-db-url')}"
                     echo "APP_STATUS = ${env.APP_STATUS}"
                     echo "MAIL_HOST = ${env.MAIL_HOST}"
                     echo "MAIL_PORT = ${env.MAIL_PORT}"
