@@ -31,7 +31,7 @@ export class OrganisationController {
     { name: 'pieceIdentiteResponsable', maxCount: 1 },
     { name: 'pieceIdentiteSecretaireGeneral', maxCount: 1 },
     { name: 'pieceIdentiteTresorier', maxCount: 1 },
-    {name: 'recepiceProvisoirOuDefinitif', maxCount: 1}
+    { name: 'recepiceProvisoirOuDefinitif', maxCount: 1 }
   ], {
     storage: diskStorage({
       destination: './uploads/organisations/public',
@@ -67,7 +67,7 @@ export class OrganisationController {
     }
   ) {
     // Validation des fichiers
-    
+
     if (!files.pieceIdentiteResponsable?.[0]) {
       throw new BadRequestException('Le fichier pieceIdentite est obligatoire');
     }
@@ -78,7 +78,7 @@ export class OrganisationController {
 
     if (!files.pieceIdentiteTresorier?.[0]) {
       throw new BadRequestException('Le fichier pieceIdentite du tresorier est obligatoire');
-    } 
+    }
 
     if (!files.recepiceProvisoirOuDefinitif?.[0]) {
       throw new BadRequestException('Le fichier recepiceProvisoirOuDefinitif est obligatoire');
@@ -153,8 +153,8 @@ export class OrganisationController {
   @ApiOperation({ summary: "Récuperation des organisations avec filtre" })
   @HttpCode(HttpStatus.OK)
   @Get('search')
-  search(@Param('page') page: number, @Param('limit') limit: number,@Query('activated') activated: string, @Param('searchQuery') searchQuery: string, ) {
-    return this.organisationService.search(page, limit, activated, searchQuery, );
+  search(@Param('page') page: number, @Param('limit') limit: number, @Query('activated') activated: string, @Param('searchQuery') searchQuery: string,) {
+    return this.organisationService.search(page, limit, activated, searchQuery,);
   }
 
 
@@ -163,7 +163,7 @@ export class OrganisationController {
   @Permissions('LIST_ORGANISATION') // La permission requise
   @HttpCode(HttpStatus.OK)
   @Get('searchPrivate')
-  searchPrivate(@Param('page') page: number, @Param('limit') limit: number, @Query('activated') activated: string,@Param('searchQuery') searchQuery: string) {
+  searchPrivate(@Param('page') page: number, @Param('limit') limit: number, @Query('activated') activated: string, @Param('searchQuery') searchQuery: string) {
     return this.organisationService.search(page, limit, activated, searchQuery);
   }
 
@@ -191,7 +191,17 @@ export class OrganisationController {
   @HttpCode(HttpStatus.OK)
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateOrganisationDto: UpdateOrganisationDto) {
-    return await this.organisationService.update(id, updateOrganisationDto);
+
+    console.log('📝 Requête PATCH reçue:', { id, updateOrganisationDto });
+
+    const result = await this.organisationService.update(id, updateOrganisationDto);
+
+
+    console.log('✅ Résultat de la mise à jour:', result);
+    console.log('📦 Type du résultat:', typeof result);
+    console.log('🔍 JSON.stringify:', JSON.stringify(result));
+
+    return result;
   }
 
   @Delete(':id')
