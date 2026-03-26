@@ -14,12 +14,12 @@ import * as process from 'process';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
   app.setGlobalPrefix('api');
-  app.useGlobalPipes( new ValidationPipe({
-      transform: true, // Active la transformation automatique
-      transformOptions: {
-        enableImplicitConversion: true, // Active la conversion implicite
-      },
-    }),)
+  app.useGlobalPipes(new ValidationPipe({
+    transform: true, // Active la transformation automatique
+    transformOptions: {
+      enableImplicitConversion: true, // Active la conversion implicite
+    },
+  }),)
   app.use(helmet());
   if (process.env.APP_STATUS == "DEV") {
     // Swagger documentation si on n'est pas en production
@@ -38,7 +38,27 @@ async function bootstrap() {
   } else {
     // Ajoutez cette ligne pour activer CORS pour votre application
     app.enableCors({
-      origin: ['', '',],
+      origin: [
+        'http://pamj-dgjase.com',
+        'https://pamj-dgjase.com',
+        'http://www.pamj-dgjase.com',
+        'https://www.pamj-dgjase.com',
+        'http://187.124.32.233'
+      ],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: [
+        'Content-Type',
+        'Authorization',
+        'X-Requested-With',
+        'Accept',
+        'Origin',
+        'Access-Control-Allow-Origin',
+        'Access-Control-Allow-Headers',
+        'Access-Control-Allow-Methods'
+      ],
+      credentials: true,  // Si vous utilisez des cookies/sessions
+      preflightContinue: false,
+      optionsSuccessStatus: 204
     });
   }
 
