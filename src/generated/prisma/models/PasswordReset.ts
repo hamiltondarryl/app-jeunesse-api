@@ -932,6 +932,11 @@ export type PasswordResetFindManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * Skip the first `n` PasswordResets.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of PasswordResets.
+   */
   distinct?: Prisma.PasswordResetScalarFieldEnum | Prisma.PasswordResetScalarFieldEnum[]
 }
 

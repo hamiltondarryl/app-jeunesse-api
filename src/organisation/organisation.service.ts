@@ -302,25 +302,249 @@ export class OrganisationService {
     }
   }
 
-  async update(id: string, updateOrganisationDto: UpdateOrganisationDto) {
-    try {
-      const organisation = await this.findOne(id);
+  // Remplacez la méthode update par celle-ci :
 
-      // Implémentez la logique de mise à jour ici
-      // ...
-
-      return await this.getById(id);
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
+async update(id: string, updateOrganisationDto: UpdateOrganisationDto) {
+  try {
+    // Vérifier si l'organisation existe
+    const existingOrganisation = await this.prismaService.organisation.findUnique({
+      where: { id },
+      include: {
+        responsable: true,
+        secretaireGeneral: true,
+        tresorier: true
       }
-      throw new InternalServerErrorException('Erreur lors de la mise à jour de l\'organisation');
+    });
+
+    if (!existingOrganisation) {
+      throw new NotFoundException('Organisation non trouvée');
     }
+
+    // Préparer les données pour la mise à jour
+    const {
+      responsable,
+      secretaireGeneral,
+      tresorier,
+      domaines,
+      departements,
+      ...organisationData
+    } = updateOrganisationDto;
+
+    // Utiliser une transaction pour mettre à jour toutes les données
+    return await this.prismaService.$transaction(async (tx) => {
+      
+      // 1. Mettre à jour l'organisation
+      const updatedOrganisation = await tx.organisation.update({
+        where: { id },
+        data: {
+          nom: organisationData.nom,
+          sigle: organisationData.sigle,
+          type: organisationData.type,
+          anneeCreation: organisationData.anneeCreation ? parseInt(organisationData.anneeCreation.toString()) : undefined,
+          agrementTechniqueDelivred: organisationData.agrementTechniqueDelivred === true || organisationData.agrementTechniqueDelivred === 'true',
+          adresse: organisationData.adresse,
+          commune: organisationData.commune,
+          international: organisationData.international === true || organisationData.international?.toString() === 'true',
+          rib: organisationData.rib,
+          partenaires: organisationData.partenaires,
+          but: organisationData.but,
+          publicCible: organisationData.publicCible,
+          groupes: organisationData.groupes ? parseInt(organisationData.groupes.toString()) : undefined,
+          adherents: organisationData.adherents ? parseInt(organisationData.adherents.toString()) : undefined,
+          hommes: organisationData.hommes ? parseInt(organisationData.hommes.toString()) : undefined,
+          femmes: organisationData.femmes ? parseInt(organisationData.femmes.toString()) : undefined,
+          salaries: organisationData.salaries ? parseInt(organisationData.salaries.toString()) : undefined,
+          benevoles: organisationData.benevoles ? parseInt(organisationData.benevoles.toString()) : undefined,
+          cotisationMensuelle: organisationData.cotisationMensuelle ? parseFloat(organisationData.cotisationMensuelle.toString()) : undefined,
+        },
+      });
+
+      // 2. Mettre à jour ou créer le responsable
+      if (responsable) {
+        if (existingOrganisation.responsableId) {
+          await tx.responsable.update({
+            where: { id: existingOrganisation.responsableId },
+            data: {
+              nom: responsable.nom,
+              age: responsable.age ? parseInt(responsable.age.toString()) : undefined,
+              nationalite: responsable.nationalite,
+              situation: responsable.situation,
+              situationMatrimoniale: responsable.situationMatrimoniale,
+              telephone: responsable.telephone,
+              email: responsable.email,
+              adresse: responsable.adresse,
+            },
+          });
+        } else {
+          const newResponsable = await tx.responsable.create({
+            data: {
+              nom: responsable.nom,
+              age: responsable.age ? parseInt(responsable.age.toString()) : undefined,
+              nationalite: responsable.nationalite,
+              situation: responsable.situation,
+              situationMatrimoniale: responsable.situationMatrimoniale,
+              telephone: responsable.telephone,
+              email: responsable.email,
+              adresse: responsable.adresse,
+            },
+          });
+          await tx.organisation.update({
+            where: { id },
+            data: { responsableId: newResponsable.id },
+          });
+        }
+      }
+
+      // 3. Mettre à jour ou créer le secrétaire général
+      if (secretaireGeneral) {
+        if (existingOrganisation.secretaireGeneralId) {
+          await tx.responsable.update({
+            where: { id: existingOrganisation.secretaireGeneralId },
+            data: {
+              nom: secretaireGeneral.nom,
+              age: secretaireGeneral.age ? parseInt(secretaireGeneral.age.toString()) : undefined,
+              nationalite: secretaireGeneral.nationalite,
+              situation: secretaireGeneral.situation,
+              situationMatrimoniale: secretaireGeneral.situationMatrimoniale,
+              telephone: secretaireGeneral.telephone,
+              email: secretaireGeneral.email,
+              adresse: secretaireGeneral.adresse,
+            },
+          });
+        } else {
+          const newSecretaire = await tx.responsable.create({
+            data: {
+              nom: secretaireGeneral.nom,
+              age: secretaireGeneral.age ? parseInt(secretaireGeneral.age.toString()) : undefined,
+              nationalite: secretaireGeneral.nationalite,
+              situation: secretaireGeneral.situation,
+              situationMatrimoniale: secretaireGeneral.situationMatrimoniale,
+              telephone: secretaireGeneral.telephone,
+              email: secretaireGeneral.email,
+              adresse: secretaireGeneral.adresse,
+            },
+          });
+          await tx.organisation.update({
+            where: { id },
+            data: { secretaireGeneralId: newSecretaire.id },
+          });
+        }
+      }
+
+      // 4. Mettre à jour ou créer le trésorier
+      if (tresorier) {
+        if (existingOrganisation.tresorierId) {
+          await tx.responsable.update({
+            where: { id: existingOrganisation.tresorierId },
+            data: {
+              nom: tresorier.nom,
+              age: tresorier.age ? parseInt(tresorier.age.toString()) : undefined,
+              nationalite: tresorier.nationalite,
+              situation: tresorier.situation,
+              situationMatrimoniale: tresorier.situationMatrimoniale,
+              telephone: tresorier.telephone,
+              email: tresorier.email,
+              adresse: tresorier.adresse,
+            },
+          });
+        } else {
+          const newTresorier = await tx.responsable.create({
+            data: {
+              nom: tresorier.nom,
+              age: tresorier.age ? parseInt(tresorier.age.toString()) : undefined,
+              nationalite: tresorier.nationalite,
+              situation: tresorier.situation,
+              situationMatrimoniale: tresorier.situationMatrimoniale,
+              telephone: tresorier.telephone,
+              email: tresorier.email,
+              adresse: tresorier.adresse,
+            },
+          });
+          await tx.organisation.update({
+            where: { id },
+            data: { tresorierId: newTresorier.id },
+          });
+        }
+      }
+
+      // 5. Mettre à jour les relations (domaines et départements)
+      if (domaines && domaines.length > 0) {
+        await tx.organisation.update({
+          where: { id },
+          data: {
+            domaines: {
+              set: domaines.map(domaineId => ({ id: domaineId })),
+            },
+          },
+        });
+      }
+
+      if (departements && departements.length > 0) {
+        await tx.organisation.update({
+          where: { id },
+          data: {
+            departements: {
+              set: departements.map(departementId => ({ id: departementId })),
+            },
+          },
+        });
+      }
+
+      // Retourner l'organisation mise à jour avec toutes les relations
+      return await tx.organisation.findUnique({
+        where: { id },
+        include: {
+          responsable: true,
+          secretaireGeneral: true,
+          tresorier: true,
+          domaines: true,
+          departements: {
+            include: { province: true }
+          },
+        },
+      });
+    });
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour:', error);
+    if (error instanceof NotFoundException) {
+      throw error;
+    }
+    if (error.code === 'P2002') {
+      throw new ConflictException('Un conflit de données unique est survenu');
+    }
+    throw new InternalServerErrorException('Erreur lors de la mise à jour de l\'organisation: ' + error.message);
   }
+}
+
+
 
   async getById(id: string) {
-    return await 'ok';
+  try {
+    const organisation = await this.prismaService.organisation.findUnique({
+      where: { id },
+      include: {
+        responsable: true,
+        secretaireGeneral: true,
+        tresorier: true,
+        domaines: true,
+        departements: {
+          include: { province: true }
+        },
+      },
+    });
+
+    if (!organisation) {
+      throw new NotFoundException('Organisation non trouvée');
+    }
+
+    return organisation;
+  } catch (error) {
+    if (error instanceof NotFoundException) {
+      throw error;
+    }
+    throw new InternalServerErrorException('Erreur lors de la récupération de l\'organisation');
   }
+}
 
   async remove(id: string) {
     try {

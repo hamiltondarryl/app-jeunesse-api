@@ -1088,6 +1088,11 @@ export type ProvinceFindManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * Skip the first `n` Provinces.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of Provinces.
+   */
   distinct?: Prisma.ProvinceScalarFieldEnum | Prisma.ProvinceScalarFieldEnum[]
 }
 

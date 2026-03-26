@@ -10,7 +10,7 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter });
 
-import * as XLSX from 'xlsx'; 
+import * as XLSX from 'xlsx';
 
 
 async function main() {
@@ -79,7 +79,7 @@ async function main() {
     { name: "DELETE_PROVINCE", description: "Supprimer une province" },
 
 
-     // departements
+    // departements
     { name: "CREATE_DEPARTEMENT", description: "Créer un département" },
     { name: "READ_DEPARTEMENT", description: "Lire un département" },
     { name: "LIST_DEPARTEMENT", description: "Lister les départements" },
@@ -166,7 +166,7 @@ async function main() {
     {
       nom: 'Haut-Ogooué',
       abreviation: 'G2',
-      departements: ['Lékoni-Lékori', 'Lékoko', 'Ogooué-Létili', 'Djouori-Agnili', 'Djoué', 'Sébé-Brikolo', 'Bayi-Brikolo', 'Lékabi-Léwolo' ,'Mpassa', 'Plateaux']
+      departements: ['Lékoni-Lékori', 'Lékoko', 'Ogooué-Létili', 'Djouori-Agnili', 'Djoué', 'Sébé-Brikolo', 'Bayi-Brikolo', 'Lékabi-Léwolo', 'Mpassa', 'Plateaux']
     },
     {
       nom: 'Moyen-Ogooué',
@@ -205,7 +205,7 @@ async function main() {
     },
   ];
 
-  
+
   for (const provinceData of provincesData) {
     await prisma.province.create({
       data: {
@@ -221,7 +221,28 @@ async function main() {
   console.log("✅ Provinces et départements créés");
 
 
-  
+  // ========== AJOUT DES DOMAINES PAR DÉFAUT ==========
+  const domainesParDefaut = [
+    "Religieux",
+    "Développement Communautaire",
+    "Projet Entrepreneurial"
+  ];
+
+  console.log("\n🏷️ Création des domaines par défaut...");
+
+  for (const nomDomaine of domainesParDefaut) {
+    await prisma.domaine.upsert({
+      where: { nom: nomDomaine },
+      update: {},
+      create: { nom: nomDomaine },
+    });
+    console.log(`  ✅ Domaine "${nomDomaine}" créé/vérifié`);
+  }
+
+  console.log("✅ Domaines par défaut créés");
+
+
+
   // Lecture du fichier Excel
   const workbook = XLSX.readFile('prisma/ass.xlsx');
   const sheetName = workbook.SheetNames[0];
@@ -233,7 +254,7 @@ async function main() {
   for (const [index, row] of data.entries()) {
     try {
       console.log(`\n📝 Traitement de l'organisation ${index + 1}/${data.length}`);
-      
+
       const nomResponsable = row['Nom et Prénoms du principal responsable de la structure ?']?.trim();
       if (!nomResponsable) {
         console.log('⏭️ Aucun responsable, skip...');
@@ -246,14 +267,14 @@ async function main() {
 
       if (nomProvince) {
         const zones = nomProvince.split(/\s*,\s*/).map(zone => zone.trim());
-        
+
         for (const zone of zones) {
           const departement = await prisma.departement.findFirst({
-            where: { 
-              nom: { 
-                contains: zone, 
-                mode: 'insensitive' 
-              } 
+            where: {
+              nom: {
+                contains: zone,
+                mode: 'insensitive'
+              }
             }
           });
 
@@ -261,11 +282,11 @@ async function main() {
             departementIds.push(departement.id);
           } else {
             const province = await prisma.province.findFirst({
-              where: { 
-                nom: { 
-                  contains: zone, 
-                  mode: 'insensitive' 
-                } 
+              where: {
+                nom: {
+                  contains: zone,
+                  mode: 'insensitive'
+                }
               },
               include: { departements: true }
             });
@@ -305,7 +326,7 @@ async function main() {
       // Créer ou connecter les domaines d'abord
       const domaineOperations = [];
       for (const nomDomaine of domainesNoms) {
-        
+
         if (nomDomaine) {
           domaineOperations.push(
             prisma.domaine.upsert({
@@ -319,60 +340,60 @@ async function main() {
 
       const domainesCrees = await Promise.all(domaineOperations);
       const domaineIds = domainesCrees.map(d => ({ id: d.id }));
-/*
-      // Organisation
-      const orga = await prisma.organisation.create({
-        data: {
-          nom: row["Quel est le nom de votre OSC ?"] || "Inconnu",
-          sigle: row["Quel est le sigle ?"] || null,
-          type: row["Quel est le type de votre OSC ?"] || null,
-          anneeCreation: Number(row["En quelle année à t-elle été crée ?"]) || null,
-          agrementTechniqueDelivred: row["Avez vous un agrément technique ?"] === "Oui",
-          adresse: row["Quelle est l'adresse du Siège de votre OSC ?"] || null,
-          commune: row["Commune de ESTUAIRE"] || null,
-          international: row["Est vous présent au niveau international ?"] === "Oui",
-          groupes: Number(row["En combien de groupes êtes vous subdivisé ?"]) || null,
-          adherents: Number(row["Nombre d'Adhérents de votre OSC ?"]) || null,
-          hommes: Number(row["Parmi vos adhérents, combien sont des hommes ?"]) || null,
-          femmes: Number(row["Parmi vos adhérents, combien sont des femmes ?"]) || null,
-          salaries: Number(row["Parmi vos adhérents, combien sont des salariés ?"]) || null,
-          benevoles: Number(row["Combien sont des bénévoles ?"]) || null,
-          cotisationMensuelle: Number(row["Quel est le montant des cotisations mensuelles ?"]) || null,
-          partenaires: row["Si oui, lequel / lesquels"] || null,
-          but: row[`Quel est "Le BUT" visé par l'association ?`] || null,
-          publicCible: row["Quel est le Public ciblé ?"] || null,
-          zones: Object.keys(row)
-            .filter((key) => key.startsWith("Veuillez sélectionner vos zones d'intervention") && row[key] === 1)
-            .map((key) => key.split("/")[1]),
-          responsable: {
-            connect: { id: responsable.id },
-          },
-          domaines: {
-            connect: domaineIds, // Utilisation directe des IDs
-          },
-          departements: {
-            connect: uniqueDepartementIds.map(id => ({ id })),
-          },
-        },
-      });
-
-      // Contact
-      const nomContact = row["Nom et Prénom(s) du Responsable :"]?.trim();
-      if (nomContact && nomContact !== nomResponsable) {
-        await prisma.contact.create({
-          data: {
-            nom: nomContact,
-            telephone: "0" + row["N° de téléphone"]?.toString() || null,
-            email: row["Courriel :"] || null,
-            organisationId: orga.id,
-          },
-        });
-      }
-
-      orgCount++;
-      console.log(`✅ Organisation "${orga.nom}" créée avec ${domaineIds.length} domaine(s)`);
-
-       */
+      /*
+            // Organisation
+            const orga = await prisma.organisation.create({
+              data: {
+                nom: row["Quel est le nom de votre OSC ?"] || "Inconnu",
+                sigle: row["Quel est le sigle ?"] || null,
+                type: row["Quel est le type de votre OSC ?"] || null,
+                anneeCreation: Number(row["En quelle année à t-elle été crée ?"]) || null,
+                agrementTechniqueDelivred: row["Avez vous un agrément technique ?"] === "Oui",
+                adresse: row["Quelle est l'adresse du Siège de votre OSC ?"] || null,
+                commune: row["Commune de ESTUAIRE"] || null,
+                international: row["Est vous présent au niveau international ?"] === "Oui",
+                groupes: Number(row["En combien de groupes êtes vous subdivisé ?"]) || null,
+                adherents: Number(row["Nombre d'Adhérents de votre OSC ?"]) || null,
+                hommes: Number(row["Parmi vos adhérents, combien sont des hommes ?"]) || null,
+                femmes: Number(row["Parmi vos adhérents, combien sont des femmes ?"]) || null,
+                salaries: Number(row["Parmi vos adhérents, combien sont des salariés ?"]) || null,
+                benevoles: Number(row["Combien sont des bénévoles ?"]) || null,
+                cotisationMensuelle: Number(row["Quel est le montant des cotisations mensuelles ?"]) || null,
+                partenaires: row["Si oui, lequel / lesquels"] || null,
+                but: row[`Quel est "Le BUT" visé par l'association ?`] || null,
+                publicCible: row["Quel est le Public ciblé ?"] || null,
+                zones: Object.keys(row)
+                  .filter((key) => key.startsWith("Veuillez sélectionner vos zones d'intervention") && row[key] === 1)
+                  .map((key) => key.split("/")[1]),
+                responsable: {
+                  connect: { id: responsable.id },
+                },
+                domaines: {
+                  connect: domaineIds, // Utilisation directe des IDs
+                },
+                departements: {
+                  connect: uniqueDepartementIds.map(id => ({ id })),
+                },
+              },
+            });
+      
+            // Contact
+            const nomContact = row["Nom et Prénom(s) du Responsable :"]?.trim();
+            if (nomContact && nomContact !== nomResponsable) {
+              await prisma.contact.create({
+                data: {
+                  nom: nomContact,
+                  telephone: "0" + row["N° de téléphone"]?.toString() || null,
+                  email: row["Courriel :"] || null,
+                  organisationId: orga.id,
+                },
+              });
+            }
+      
+            orgCount++;
+            console.log(`✅ Organisation "${orga.nom}" créée avec ${domaineIds.length} domaine(s)`);
+      
+             */
 
     } catch (error) {
       errorCount++;

@@ -190,13 +190,13 @@ export class OrganisationController {
   @ApiOperation({ summary: "Mise à jour d'une organisation" })
   @HttpCode(HttpStatus.OK)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrganisationDto: UpdateOrganisationDto) {
-    return this.organisationService.update(id, updateOrganisationDto);
+  async update(@Param('id') id: string, @Body() updateOrganisationDto: UpdateOrganisationDto) {
+    return await this.organisationService.update(id, updateOrganisationDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.organisationService.remove(id);
+  async remove(@Param('id') id: string) {
+    return await this.organisationService.remove(id);
   }
 
   @ApiOperation({ summary: "Activation d'une organisation" })
