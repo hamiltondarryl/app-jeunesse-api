@@ -101,6 +101,15 @@ export class OrganisationController {
     };
   }
 
+  @ApiOperation({ summary: "Mise à jour d'une organisation" })
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('UPDATE_ORGANISATION') // La permission requise
+  @HttpCode(HttpStatus.OK)
+  @Patch(':id')
+  async update(@Param('id') id: string, @Body() updateOrganisationDto: UpdateOrganisationDto) {
+    return await this.organisationService.update(id, updateOrganisationDto);
+  }
+
 
   @ApiOperation({ summary: "Nombre d'associations par département pour une province avec filtre domaine optionnel" })
   @HttpCode(HttpStatus.OK)
@@ -186,14 +195,6 @@ export class OrganisationController {
     return this.organisationService.findOne(id);
   }
 
-  @ApiOperation({ summary: "Mise à jour d'une organisation" })
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
-  @Permissions('UPDATE_ORGANISATION') // La permission requise
-  @HttpCode(HttpStatus.OK)
-  @Patch('update/:id')
-  async update(@Param('id') id: string, @Body() updateOrganisationDto: UpdateOrganisationDto) {
-    return await this.organisationService.update(id, updateOrganisationDto);
-  }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, PermissionsGuard)
