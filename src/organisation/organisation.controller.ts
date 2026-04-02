@@ -102,7 +102,7 @@ export class OrganisationController {
   @ApiOperation({ summary: "Mise à jour d'une organisation" })
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Permissions('UPDATE_ORGANISATION') // La permission requise
-  @Patch(':id')
+  @Get('test-update/:id')
 
   async update(@Param('id') id: string, @Body() updateOrganisationDto: UpdateOrganisationDto) {
 
