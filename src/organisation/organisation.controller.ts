@@ -105,15 +105,7 @@ export class OrganisationController {
   @Patch(':id')
 
   async update(@Param('id') id: string, @Body() updateOrganisationDto: UpdateOrganisationDto) {
-
-    console.error('=== ROUTE UPDATE ATTEINTE ===');
-  console.error('ID:', id);
-  
-  // Retourner une réponse JSON simple
-  return { test: true, received: true, id: id };
-
-  /*async update(@Param('id') id: string, @Body() updateOrganisationDto: UpdateOrganisationDto) {
-    return await this.organisationService.update(id, updateOrganisationDto);*/
+    return await this.organisationService.update(id, updateOrganisationDto);
   }
 
 

@@ -491,18 +491,7 @@ async update(id: string, updateOrganisationDto: UpdateOrganisationDto) {
       }
 
       // Retourner l'organisation mise à jour avec toutes les relations
-      return await tx.organisation.findUnique({
-        where: { id },
-        include: {
-          responsable: true,
-          secretaireGeneral: true,
-          tresorier: true,
-          domaines: true,
-          departements: {
-            include: { province: true }
-          },
-        },
-      });
+      return { message: 'Organisation mise à jour avec succès'}
     });
   } catch (error) {
     console.error('Erreur lors de la mise à jour:', error);
