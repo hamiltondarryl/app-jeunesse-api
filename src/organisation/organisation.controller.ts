@@ -157,7 +157,6 @@ export class OrganisationController {
     return this.organisationService.search(page, limit, activated, searchQuery,);
   }
 
-
   @ApiOperation({ summary: "Récuperation des organisations avec filtre" })
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Permissions('LIST_ORGANISATION') // La permission requise
