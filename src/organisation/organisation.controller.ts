@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, UseGuards, UploadedFiles, BadRequestException, UseInterceptors, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, UseGuards, UploadedFiles, BadRequestException, UseInterceptors, Query, Put } from '@nestjs/common';
 import { OrganisationService } from './organisation.service';
 import { ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { extname } from 'path';
@@ -185,11 +185,12 @@ export class OrganisationController {
   findOne(@Param('id') id: string) {
     return this.organisationService.findOne(id);
   }
+
   @ApiOperation({ summary: "Mise à jour d'une organisation" })
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Permissions('UPDATE_ORGANISATION') // La permission requise
   @HttpCode(HttpStatus.OK)
-  @Patch(':id')
+  @Put(':id')
   async update(@Param('id') id: string, @Body() updateOrganisationDto: UpdateOrganisationDto) {
     return await this.organisationService.update(id, updateOrganisationDto);
   }
