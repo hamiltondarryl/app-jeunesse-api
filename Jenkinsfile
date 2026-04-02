@@ -84,7 +84,14 @@ pipeline {
       stage('Deploy') {
     steps {
         script {
+
+            sh "sudo rm -rf ${APP_DIR}"
+
             sh "mkdir -p ${APP_DIR}"
+
+            sh "sudo chown -R jenkins:jenkins ${APP_DIR}"
+            sh "chmod -R 755 ${APP_DIR}"
+
             sh "cp -r dist package.json package-lock.json prisma ${APP_DIR}/"
             
             // ✅ CRÉATION DU FICHIER .env AVEC LA BONNE URL
@@ -100,6 +107,15 @@ pipeline {
             """
             
             sh "cd ${APP_DIR} && npm ci --legacy-peer-deps --force --no-audit --no-fund"
+
+             sh """
+                cd ${APP_DIR}
+                rm -rf node_modules package-lock.json
+                npm cache clean --force
+                npm ci --legacy-peer-deps --no-audit --no-fund
+            """
+
+            
             sh "cd ${APP_DIR} && npx prisma generate"
             
             def pm2Path = "/root/.nvm/versions/node/v24.14.0/bin/pm2"
