@@ -8,9 +8,7 @@ import { UpdateOrganisationDto } from './dto/update-organisation.dto';
 import { CreateOrganisationDto, PublicCreateOrganisationDto } from './dto/create-organisation.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from 'src/auth/guards/permissions.guard';
-import { Permissions } from 'src/auth/guards/permissions.decorator';
-
-
+import { Permissions } from '../auth/guards/permissions.decorator';
 
 @ApiTags("Gestion des organisations")
 @Controller('organisation')
@@ -104,7 +102,6 @@ export class OrganisationController {
   @ApiOperation({ summary: "Mise à jour d'une organisation" })
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Permissions('UPDATE_ORGANISATION') // La permission requise
-  @HttpCode(HttpStatus.OK)
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateOrganisationDto: UpdateOrganisationDto) {
     return await this.organisationService.update(id, updateOrganisationDto);
