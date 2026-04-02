@@ -104,12 +104,6 @@ pipeline {
             """
             
             sh "cd ${APP_DIR} && npm ci --legacy-peer-deps --force --no-audit --no-fund"
-            sh """
-                cd ${APP_DIR}
-                rm -rf node_modules package-lock.json
-                npm cache clean --force
-                npm ci --legacy-peer-deps --no-audit --no-fund
-            """
 
             sh "cd ${APP_DIR} && npx prisma generate"
             
