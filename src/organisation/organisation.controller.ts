@@ -192,7 +192,11 @@ export class OrganisationController {
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateOrganisationDto: UpdateOrganisationDto) {
     const result = await this.organisationService.update(id, updateOrganisationDto);
-    return result;
+    return {
+      success: true,
+      message: 'Organisation mise à jour avec succès',
+      data: result
+    };
   }
 
   @Delete(':id')

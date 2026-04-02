@@ -8,11 +8,17 @@ import * as bodyParser from 'body-parser';
 import { join } from 'path'; // Add this import statement
 import * as express from 'express';
 import * as process from 'process';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
 
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
+
+    // ✅ Ajouter l'interceptor global AVANT les autres
+  app.useGlobalInterceptors(new ResponseInterceptor());
+
+  
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({
     transform: true, // Active la transformation automatique
