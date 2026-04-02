@@ -57,6 +57,12 @@ pipeline {
             }
         }
 
+        stage('Install last version prisma') {
+            steps {
+                sh 'npm i --save-dev prisma@latest'
+            }
+        }
+
         stage('Install Dependencies') {
             steps {
                 sh 'npm ci --legacy-peer-deps --force --no-audit --no-fund'
@@ -93,7 +99,7 @@ pipeline {
                 echo 'MAIL_PASS=${MAIL_PASS}' >> .env
             """
             
-            sh "cd ${APP_DIR} && npm ci --legacy-peer-deps"
+            sh "cd ${APP_DIR} && npm ci --legacy-peer-deps --force --no-audit --no-fund"
             sh "cd ${APP_DIR} && npx prisma generate"
             
             def pm2Path = "/root/.nvm/versions/node/v24.14.0/bin/pm2"
