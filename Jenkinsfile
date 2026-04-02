@@ -59,7 +59,7 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh 'npm ci --legacy-peer-deps'
+                sh 'npm ci --legacy-peer-deps --force --no-audit --no-fund'
             }
         }
 
