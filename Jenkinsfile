@@ -84,11 +84,9 @@ pipeline {
       stage('Deploy') {
     steps {
         script {
-
-            sh "rm -rf ${APP_DIR}"
-
+            
             sh "mkdir -p ${APP_DIR}"
-        
+
             sh "cp -r dist package.json package-lock.json prisma ${APP_DIR}/"
             
             // ✅ CRÉATION DU FICHIER .env AVEC LA BONNE URL
