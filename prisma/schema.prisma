@@ -120,7 +120,7 @@ model Organisation {
 
 model Responsable {
   id                               String         @id @default(uuid())
-  nom                              String         @unique
+  nom                              String         
   age                              Int?
   nationalite                      String?
   situation                        String?

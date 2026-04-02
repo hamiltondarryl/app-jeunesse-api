@@ -191,16 +191,7 @@ export class OrganisationController {
   @HttpCode(HttpStatus.OK)
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateOrganisationDto: UpdateOrganisationDto) {
-
-    console.log('📝 Requête PATCH reçue:', { id, updateOrganisationDto });
-
     const result = await this.organisationService.update(id, updateOrganisationDto);
-
-
-    console.log('✅ Résultat de la mise à jour:', result);
-    console.log('📦 Type du résultat:', typeof result);
-    console.log('🔍 JSON.stringify:', JSON.stringify(result));
-
     return result;
   }
 

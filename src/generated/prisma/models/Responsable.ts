@@ -297,10 +297,10 @@ export type ResponsableOrderByWithRelationInput = {
 
 export type ResponsableWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  nom?: string
   AND?: Prisma.ResponsableWhereInput | Prisma.ResponsableWhereInput[]
   OR?: Prisma.ResponsableWhereInput[]
   NOT?: Prisma.ResponsableWhereInput | Prisma.ResponsableWhereInput[]
+  nom?: Prisma.StringFilter<"Responsable"> | string
   age?: Prisma.IntNullableFilter<"Responsable"> | number | null
   nationalite?: Prisma.StringNullableFilter<"Responsable"> | string | null
   situation?: Prisma.StringNullableFilter<"Responsable"> | string | null
@@ -314,7 +314,7 @@ export type ResponsableWhereUniqueInput = Prisma.AtLeast<{
   organisationsAsResponsable?: Prisma.OrganisationListRelationFilter
   organisationsAsSecretaireGeneral?: Prisma.OrganisationListRelationFilter
   organisations?: Prisma.OrganisationListRelationFilter
-}, "id" | "nom">
+}, "id">
 
 export type ResponsableOrderByWithAggregationInput = {
   id?: Prisma.SortOrder

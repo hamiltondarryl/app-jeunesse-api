@@ -302,19 +302,23 @@ async function main() {
       const uniqueDepartementIds = [...new Set(departementIds)];
 
       // Responsable
-      const responsable = await prisma.responsable.upsert({
-        where: { nom: nomResponsable },
-        update: {},
-        create: {
-          nom: nomResponsable,
-          age: Number(row["Quelle est l'âge du responsable ? (en années)"]) || null,
-          nationalite: row['Veuillez entrer la nationalité du responsable'] || null,
-          situation: row['Quelle est sa situation professionnelle ?'] || null,
-          telephone: row['N° de téléphone :']?.toString() || null,
-          email: row['Adresse courriel :'] || null,
-          adresse: row["Adresse :"] || null,
-        },
+      let responsable = await prisma.responsable.findFirst({
+        where: { nom: nomResponsable }
       });
+
+      if (!responsable) {
+        responsable = await prisma.responsable.create({
+          data: {
+            nom: nomResponsable,
+            age: Number(row["Quelle est l'âge du responsable ? (en années)"]) || null,
+            nationalite: row['Veuillez entrer la nationalité du responsable'] || null,
+            situation: row['Quelle est sa situation professionnelle ?'] || null,
+            telephone: row['N° de téléphone :']?.toString() || null,
+            email: row['Adresse courriel :'] || null,
+            adresse: row["Adresse :"] || null,
+          },
+        });
+      }
 
       // Domaine(s) - CORRECTION ICI
       const domainesNoms = (row["Quels est son domaine d’intervention ?"] || "")
@@ -397,7 +401,8 @@ async function main() {
 
     } catch (error) {
       errorCount++;
-      console.error(`❌ Erreur sur l'organisation ${index + 1}:`, error.message);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`❌ Erreur sur l'organisation ${index + 1}:`, errorMessage);
     }
   }
 

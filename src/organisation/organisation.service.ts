@@ -169,13 +169,13 @@ export class OrganisationService {
       console.error('❌ Erreur détaillée:', error);
       await this.cleanupFiles([recepicePath, pieceIdentiteResponsablePath, pieceIdentiteSecretaireGeneralPath, pieceIdentiteTresorierPath, recepiceProvisoirOuDefinitifPath]);
 
-      if (error.code === 'P2002') {
+      if ((error as any).code === 'P2002') {
         throw new ConflictException('Violation de contrainte unique');
-      } else if (error.code === 'P2025') {
+      } else if ((error as any).code === 'P2025') {
         throw new BadRequestException('Domaine ou département introuvable');
       }
 
-      throw new InternalServerErrorException("Erreur lors de la création de l'organisation: " + error.message);
+      throw new InternalServerErrorException("Erreur lors de la création de l'organisation: " + (error as any).message);
     }
   }
 
@@ -509,10 +509,10 @@ async update(id: string, updateOrganisationDto: UpdateOrganisationDto) {
     if (error instanceof NotFoundException) {
       throw error;
     }
-    if (error.code === 'P2002') {
+    if (error instanceof Object && 'code' in error && error.code === 'P2002') {
       throw new ConflictException('Un conflit de données unique est survenu');
     }
-    throw new InternalServerErrorException('Erreur lors de la mise à jour de l\'organisation: ' + error.message);
+    throw new InternalServerErrorException('Erreur lors de la mise à jour de l\'organisation: ' + (error instanceof Error ? error.message : String(error)));
   }
 }
 

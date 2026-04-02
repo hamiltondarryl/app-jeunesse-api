@@ -199,9 +199,6 @@ CREATE UNIQUE INDEX "Role_code_key" ON "Role"("code");
 CREATE UNIQUE INDEX "Permission_name_key" ON "Permission"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Responsable_nom_key" ON "Responsable"("nom");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Domaine_nom_key" ON "Domaine"("nom");
 
 -- CreateIndex
