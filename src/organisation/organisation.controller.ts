@@ -190,7 +190,7 @@ export class OrganisationController {
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Permissions('UPDATE_ORGANISATION') // La permission requise
   @HttpCode(HttpStatus.OK)
-  @Put('update/:id')
+  @Patch('update/:id')
   async update(@Param('id') id: string, @Body() updateOrganisationDto: UpdateOrganisationDto) {
     return await this.organisationService.update(id, updateOrganisationDto);
   }
