@@ -186,33 +186,30 @@ export class OrganisationController {
   findOne(@Param('id') id: string) {
     return this.organisationService.findOne(id);
   }
-
   @ApiOperation({ summary: "Mise à jour d'une organisation" })
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('UPDATE_ORGANISATION') // La permission requise
   @HttpCode(HttpStatus.OK)
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateOrganisationDto: UpdateOrganisationDto) {
-
-
-    return {
-      success: true,
-      message: 'Organisation mise à jour avec succès',
-      data : updateOrganisationDto
-    }
-
-    /*const result = await this.organisationService.update(id, updateOrganisationDto);
+    const result = await this.organisationService.update(id, updateOrganisationDto);
     return {
       success: true,
       message: 'Organisation mise à jour avec succès',
       data: result
-    };*/
+    };
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('DELETE_ORGANISATION') // La permission requise
   async remove(@Param('id') id: string) {
     return await this.organisationService.remove(id);
   }
 
   @ApiOperation({ summary: "Activation d'une organisation" })
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('UPDATE_ORGANISATION') // La permission requise
   @HttpCode(HttpStatus.OK)
   @Patch('activate/:id')
   activate(@Param('id') id: string) {
