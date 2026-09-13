@@ -60,7 +60,8 @@ export const ModelName = {
   Domaine: 'Domaine',
   ActivityLog: 'ActivityLog',
   Province: 'Province',
-  Departement: 'Departement'
+  Departement: 'Departement',
+  Referentiel: 'Referentiel'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -89,6 +90,7 @@ export const UserScalarFieldEnum = {
   fcmToken: 'fcmToken',
   activated: 'activated',
   passwordDefault: 'passwordDefault',
+  tokenVersion: 'tokenVersion',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -223,6 +225,20 @@ export const DepartementScalarFieldEnum = {
 } as const
 
 export type DepartementScalarFieldEnum = (typeof DepartementScalarFieldEnum)[keyof typeof DepartementScalarFieldEnum]
+
+
+export const ReferentielScalarFieldEnum = {
+  id: 'id',
+  categorie: 'categorie',
+  code: 'code',
+  libelle: 'libelle',
+  ordre: 'ordre',
+  actif: 'actif',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ReferentielScalarFieldEnum = (typeof ReferentielScalarFieldEnum)[keyof typeof ReferentielScalarFieldEnum]
 
 
 export const SortOrder = {

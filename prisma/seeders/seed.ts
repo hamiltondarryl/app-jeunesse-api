@@ -1,6 +1,10 @@
 import { PrismaClient } from '../../src/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcryptjs';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as XLSX from 'xlsx';
+import { seedReferentiels } from './referentiels';
 
 require('dotenv').config();
 
@@ -10,408 +14,538 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter });
 
-import * as XLSX from 'xlsx';
+type ProvinceSeed = {
+  nom: string;
+  abreviation: string;
+  departements: string[];
+};
 
+const PROVINCES: ProvinceSeed[] = [
+  {
+    nom: 'Estuaire',
+    abreviation: 'G1',
+    departements: ['Komo', 'Komo-Mondah', 'Noya', 'Komo-Océan', 'Libreville'],
+  },
+  {
+    nom: 'Haut-Ogooué',
+    abreviation: 'G2',
+    departements: [
+      'Lékoni-Lékori',
+      'Lékoko',
+      'Ogooué-Letili',
+      'Djouori-Agnili',
+      'Djoué',
+      'Sébé-Brikolo',
+      'Bayi-Brikolo',
+      'Lékabi-Léwolo',
+      'Mpassa',
+      'Plateaux',
+      'Lébombi-Leyou',
+    ],
+  },
+  {
+    nom: 'Moyen-Ogooué',
+    abreviation: 'G3',
+    departements: ['Abanga-Bigné', 'Ogooué et des Lacs'],
+  },
+  {
+    nom: 'Ngounié',
+    abreviation: 'G4',
+    departements: [
+      'Mougalaba',
+      'Boumi-Louetsi',
+      'Dola',
+      'Douya-Onoy',
+      'Louetsi-Wano',
+      'Louetsi-Bibaka',
+      'Ogoulou',
+      'Ndolou',
+      'Tsamba-Magotsi',
+    ],
+  },
+  {
+    nom: 'Nyanga',
+    abreviation: 'G5',
+    departements: ['Douigni', 'Basse-Banio', 'Doutsila', 'Haute-Banio', 'Mongo', 'Mougoutsi'],
+  },
+  {
+    nom: 'Ogooué-Ivindo',
+    abreviation: 'G6',
+    departements: ['Mvoung', 'Ivindo', 'Lopé', 'Zadié'],
+  },
+  {
+    nom: 'Ogooué-Lolo',
+    abreviation: 'G7',
+    departements: ['Lombo-Bouenguidi', 'Loffi', 'Offoué-Onoye', 'Mouloundou'],
+  },
+  {
+    nom: 'Ogooué-Maritime',
+    abreviation: 'G8',
+    departements: ['Bendjé', 'Etimboué', 'Ndougou'],
+  },
+  {
+    nom: 'Woleu-Ntem',
+    abreviation: 'G9',
+    departements: ['Haut-Ntem', 'Ntem', 'Okano', 'Woleu', 'Haut-Komo'],
+  },
+];
+
+const DOMAINES_DEFAUT = [
+  'Religieux',
+  'Développement Communautaire',
+  'Projet Entrepreneurial',
+  'Éducation',
+  'Santé',
+  'Environnement',
+  'Sport',
+  'Culture',
+  'Droits humains',
+  'Insertion professionnelle',
+];
+
+function normalize(value: string): string {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function cell(row: Record<string, any>, ...keys: string[]): string {
+  for (const key of keys) {
+    const exact = row[key];
+    if (exact !== undefined && exact !== null && String(exact).trim() !== '') {
+      return String(exact).trim();
+    }
+  }
+
+  const normalizedKeys = keys.map(normalize);
+  for (const [header, value] of Object.entries(row)) {
+    if (normalizedKeys.includes(normalize(header)) && value !== undefined && value !== null) {
+      return String(value).trim();
+    }
+  }
+
+  return '';
+}
+
+function toNumber(value: unknown): number | null {
+  if (value === undefined || value === null || value === '') {
+    return null;
+  }
+  const parsed = Number(String(value).replace(',', '.'));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function toBoolean(value: unknown): boolean {
+  const normalized = normalize(String(value || ''));
+  return ['oui', 'yes', 'true', '1', 'o'].includes(normalized);
+}
 
 async function main() {
-  console.log('🚀 Début du seeder...');
+  console.log('🚀 Seeder JEUNESSE-APP');
 
-  // Nettoyer les tables dans l'ordre (respect des FK)
   await prisma.organisation.deleteMany();
   await prisma.responsable.deleteMany();
   await prisma.domaine.deleteMany();
   await prisma.departement.deleteMany();
   await prisma.province.deleteMany();
+  await prisma.referentiel.deleteMany();
+  await prisma.activityLog.deleteMany();
+  await prisma.passwordReset.deleteMany();
   await prisma.user.deleteMany();
   await prisma.role.deleteMany();
   await prisma.permission.deleteMany();
 
-  console.log('🧹 Base nettoyée.');
+  await seedReferentiels(prisma);
 
-  /** Permissions */
   const permissionsData = [
-    { name: "ACCESS_APP", description: "Acces à l'application" },
-    { name: "LOG", description: "Historique des actions utilisateur" },
-    { name: "ACCESS_APP_MOBILE", description: "Acces à l'application mobile" },
-    { name: "DASHBORD_ADMIN", description: "Accès au tableau de bord" },
-
-    // Utilisateurs
-    { name: "CREATE_USER", description: "Créer un utilisateur" },
-    { name: "READ_USER", description: "Afficher un utilisateur" },
-    { name: "LIST_USER", description: "Lister les utilisateurs" },
-    { name: "UPDATE_USER", description: "Mettre à jour un utilisateur" },
-    { name: "DELETE_USER", description: "Supprimer un utilisateur" },
-    { name: "ACTIVATED_USER", description: "Activer/désactiver un utilisateur" },
-
-    // Permissions
-    { name: "CREATE_PERMISSION", description: "Créer une permission" },
-    { name: "READ_PERMISSION", description: "Lire une permission" },
-    { name: "LIST_PERMISSION", description: "Lister les permissions" },
-    { name: "UPDATE_PERMISSION", description: "Mettre à jour une permission" },
-    { name: "DELETE_PERMISSION", description: "Supprimer une permission" },
-
-    // Rôles
-    { name: "CREATE_ROLE", description: "Créer un rôle" },
-    { name: "READ_ROLE", description: "Lire un rôle" },
-    { name: "LIST_ROLE", description: "Lister les rôles" },
-    { name: "UPDATE_ROLE", description: "Mettre à jour un rôle" },
-    { name: "DELETE_ROLE", description: "Supprimer un rôle" },
-
-    // Organisations
-    { name: "CREATE_ORGANISATION", description: "Créer une organisation" },
-    { name: "READ_ORGANISATION", description: "Lire une organisation" },
-    { name: "LIST_ORGANISATION", description: "Lister les organisations" },
-    { name: "UPDATE_ORGANISATION", description: "Mettre à jour une organisation" },
-    { name: "DELETE_ORGANISATION", description: "Supprimer une organisation" },
-
-    // Domaines
-    { name: "CREATE_DOMAINE", description: "Créer un domaine" },
-    { name: "READ_DOMAINE", description: "Lire un domaine" },
-    { name: "LIST_DOMAINE", description: "Lister les domaines" },
-    { name: "UPDATE_DOMAINE", description: "Mettre à jour un domaine" },
-    { name: "DELETE_DOMAINE", description: "Supprimer un domaine" },
-
-    // Provinces
-    { name: "CREATE_PROVINCE", description: "Créer une province" },
-    { name: "READ_PROVINCE", description: "Lire une province" },
-    { name: "LIST_PROVINCE", description: "Lister les provinces" },
-    { name: "UPDATE_PROVINCE", description: "Mettre à jour une province" },
-    { name: "DELETE_PROVINCE", description: "Supprimer une province" },
-
-
-    // departements
-    { name: "CREATE_DEPARTEMENT", description: "Créer un département" },
-    { name: "READ_DEPARTEMENT", description: "Lire un département" },
-    { name: "LIST_DEPARTEMENT", description: "Lister les départements" },
-    { name: "UPDATE_DEPARTEMENT", description: "Mettre à jour un département" },
-    { name: "DELETE_DEPARTEMENT", description: "Supprimer un département" },
-
-    // Candidats
-    { name: "NOTER_CANDIDAT", description: "Noter un candidat" },
-    { name: "CONSULTER_RESULTAT", description: "Consulter les résultats" },
+    { name: 'ACCESS_APP', description: "Accès à l'application" },
+    { name: 'LOG', description: 'Historique des actions utilisateur' },
+    { name: 'ACCESS_APP_MOBILE', description: "Accès à l'application mobile" },
+    { name: 'DASHBORD_ADMIN', description: 'Accès au tableau de bord' },
+    { name: 'CREATE_USER', description: 'Créer un utilisateur' },
+    { name: 'READ_USER', description: 'Afficher un utilisateur' },
+    { name: 'LIST_USER', description: 'Lister les utilisateurs' },
+    { name: 'UPDATE_USER', description: 'Mettre à jour un utilisateur' },
+    { name: 'DELETE_USER', description: 'Supprimer un utilisateur' },
+    { name: 'ACTIVATED_USER', description: 'Activer/désactiver un utilisateur' },
+    { name: 'CREATE_PERMISSION', description: 'Créer une permission' },
+    { name: 'READ_PERMISSION', description: 'Lire une permission' },
+    { name: 'LIST_PERMISSION', description: 'Lister les permissions' },
+    { name: 'UPDATE_PERMISSION', description: 'Mettre à jour une permission' },
+    { name: 'DELETE_PERMISSION', description: 'Supprimer une permission' },
+    { name: 'CREATE_ROLE', description: 'Créer un rôle' },
+    { name: 'READ_ROLE', description: 'Lire un rôle' },
+    { name: 'LIST_ROLE', description: 'Lister les rôles' },
+    { name: 'UPDATE_ROLE', description: 'Mettre à jour un rôle' },
+    { name: 'DELETE_ROLE', description: 'Supprimer un rôle' },
+    { name: 'CREATE_ORGANISATION', description: 'Créer une organisation' },
+    { name: 'READ_ORGANISATION', description: 'Lire une organisation' },
+    { name: 'LIST_ORGANISATION', description: 'Lister les organisations' },
+    { name: 'UPDATE_ORGANISATION', description: 'Mettre à jour une organisation' },
+    { name: 'DELETE_ORGANISATION', description: 'Supprimer une organisation' },
+    { name: 'CREATE_DOMAINE', description: 'Créer un domaine' },
+    { name: 'READ_DOMAINE', description: 'Lire un domaine' },
+    { name: 'LIST_DOMAINE', description: 'Lister les domaines' },
+    { name: 'UPDATE_DOMAINE', description: 'Mettre à jour un domaine' },
+    { name: 'DELETE_DOMAINE', description: 'Supprimer un domaine' },
+    { name: 'LIST_REFERENTIEL', description: 'Lister les référentiels' },
+    { name: 'CREATE_REFERENTIEL', description: 'Créer un référentiel' },
+    { name: 'UPDATE_REFERENTIEL', description: 'Mettre à jour un référentiel' },
+    { name: 'CREATE_PROVINCE', description: 'Créer une province' },
+    { name: 'READ_PROVINCE', description: 'Lire une province' },
+    { name: 'LIST_PROVINCE', description: 'Lister les provinces' },
+    { name: 'UPDATE_PROVINCE', description: 'Mettre à jour une province' },
+    { name: 'DELETE_PROVINCE', description: 'Supprimer une province' },
+    { name: 'CREATE_DEPARTEMENT', description: 'Créer un département' },
+    { name: 'READ_DEPARTEMENT', description: 'Lire un département' },
+    { name: 'LIST_DEPARTEMENT', description: 'Lister les départements' },
+    { name: 'UPDATE_DEPARTEMENT', description: 'Mettre à jour un département' },
+    { name: 'DELETE_DEPARTEMENT', description: 'Supprimer un département' },
   ];
 
-  const permissions = {};
+  const permissions: Record<string, { id: string; name: string }> = {};
   for (const perm of permissionsData) {
-    const created = await prisma.permission.create({ data: perm });
-    permissions[perm.name] = created;
+    permissions[perm.name] = await prisma.permission.create({ data: perm });
   }
 
-  console.log('✅ Permissions insérées.');
-
-  /** Rôles + Users */
   const adminRole = await prisma.role.create({
     data: {
-      name: "Admin",
-      code: "ADMIN",
-      description: "Administre la plateforme",
+      name: 'Admin',
+      code: 'ADMIN',
+      description: 'Administrateur de la plateforme',
       permissions: {
-        connect: Object.values(permissions).map((p: any) => ({ id: p.id })),
+        connect: Object.values(permissions).map((permission) => ({ id: permission.id })),
       },
     },
   });
 
   const gestionnaireRole = await prisma.role.create({
     data: {
-      name: "Gestionnaire",
-      code: "GESTION",
-      description: "Gestionnaire avec accès limité",
+      name: 'Gestionnaire',
+      code: 'GESTION',
+      description: 'Valide les inscriptions et administre les associations',
       permissions: {
         connect: [
-          { id: permissions["ACCESS_APP"].id },
-          { id: permissions["LOG"].id },
-          { id: permissions["ACCESS_APP_MOBILE"].id },
-          { id: permissions["DASHBORD_ADMIN"].id },
-          { id: permissions["CREATE_USER"].id },
-          { id: permissions["READ_USER"].id },
-          { id: permissions["LIST_USER"].id },
-          { id: permissions["UPDATE_USER"].id },
-          { id: permissions["ACTIVATED_USER"].id },
-        ],
+          'ACCESS_APP',
+          'LOG',
+          'DASHBORD_ADMIN',
+          'LIST_USER',
+          'READ_USER',
+          'LIST_ORGANISATION',
+          'READ_ORGANISATION',
+          'UPDATE_ORGANISATION',
+          'LIST_DOMAINE',
+          'READ_DOMAINE',
+          'LIST_PROVINCE',
+          'READ_PROVINCE',
+          'LIST_DEPARTEMENT',
+          'READ_DEPARTEMENT',
+        ].map((name) => ({ id: permissions[name].id })),
       },
     },
   });
 
-  const defaultPassword = await bcrypt.hash("azerty", 10);
+  const adminPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'Admin@Jeunesse2026';
+  const hashedPassword = await bcrypt.hash(adminPassword, 10);
 
   await prisma.user.create({
     data: {
-      email: "admin@test.ga",
-      username: "Jhon DOE",
+      email: process.env.DEFAULT_ADMIN_EMAIL || 'admin@jeunesse.ga',
+      username: 'Administrateur',
       activated: true,
-      password: defaultPassword,
+      passwordDefault: true,
+      password: hashedPassword,
       role: { connect: { id: adminRole.id } },
     },
   });
 
   await prisma.user.create({
     data: {
-      email: "gestionnaire@test.ga",
-      username: "Jane DOE",
+      email: 'gestionnaire@jeunesse.ga',
+      username: 'Gestionnaire',
       activated: true,
-      password: defaultPassword,
+      passwordDefault: true,
+      password: hashedPassword,
       role: { connect: { id: gestionnaireRole.id } },
     },
   });
 
-  console.log('✅ Rôles et utilisateurs insérés.');
+  const provinceIndex = new Map<string, { id: string; nom: string; departements: { id: string; nom: string }[] }>();
+  const departementIndex = new Map<string, { id: string; nom: string; provinceId: string }>();
 
-  /** Provinces + Départements */
-  const provincesData = [
-    {
-      nom: 'Estuaire',
-      abreviation: 'G1',
-      departements: ['Komo', 'Komo-Mondah', 'Noya', 'Komo-Océan']
-    },
-    {
-      nom: 'Haut-Ogooué',
-      abreviation: 'G2',
-      departements: ['Lékoni-Lékori', 'Lékoko', 'Ogooué-Létili', 'Djouori-Agnili', 'Djoué', 'Sébé-Brikolo', 'Bayi-Brikolo', 'Lékabi-Léwolo', 'Mpassa', 'Plateaux']
-    },
-    {
-      nom: 'Moyen-Ogooué',
-      abreviation: 'G3',
-      departements: ['Abanga-Bigné', 'Ogooué et des Lacs']
-    },
-    {
-      nom: 'Ngounié',
-      abreviation: 'G4',
-      departements: ['Mougalaba', 'Boumi-Louetsi', 'Dola', 'Douya-Onoy', 'Louetsi-Wano', 'Louetsi-Bibaka', 'Ogoulou', 'Ndolou', 'Tsamba-Magotsi']
-    },
-    {
-      nom: 'Nyanga',
-      abreviation: 'G5',
-      departements: ['Douigni', 'Basse-Banio', 'Doutsila', 'Haute-Banio', 'Mongo', 'Mougoutsi']
-    },
-    {
-      nom: 'Ogooué-Ivindo',
-      abreviation: 'G6',
-      departements: ['Mvoung', 'Ivindo', 'Lopé', 'Zadié']
-    },
-    {
-      nom: 'Ogooué-Lolo',
-      abreviation: 'G7',
-      departements: ['Lombo-Bouenguidi', 'Loffi', 'Offoué-Onoye', 'Mouloundou']
-    },
-    {
-      nom: 'Ogooué-Maritime',
-      abreviation: 'G8',
-      departements: ['Bendjé', 'Etimboué', 'Ndougou']
-    },
-    {
-      nom: 'Woleu-Ntem',
-      abreviation: 'G9',
-      departements: ['Haut-Ntem', 'Ntem', 'Okano', 'Woleu']
-    },
-  ];
-
-
-  for (const provinceData of provincesData) {
-    await prisma.province.create({
+  for (const provinceData of PROVINCES) {
+    const province = await prisma.province.create({
       data: {
         nom: provinceData.nom,
         abreviation: provinceData.abreviation,
         departements: {
-          create: provinceData.departements.map(nom => ({ nom }))
-        }
+          create: provinceData.departements.map((nom) => ({ nom })),
+        },
       },
+      include: { departements: true },
     });
-  }
 
-  console.log("✅ Provinces et départements créés");
-
-
-  // ========== AJOUT DES DOMAINES PAR DÉFAUT ==========
-  const domainesParDefaut = [
-    "Religieux",
-    "Développement Communautaire",
-    "Projet Entrepreneurial"
-  ];
-
-  console.log("\n🏷️ Création des domaines par défaut...");
-
-  for (const nomDomaine of domainesParDefaut) {
-    await prisma.domaine.upsert({
-      where: { nom: nomDomaine },
-      update: {},
-      create: { nom: nomDomaine },
+    provinceIndex.set(normalize(province.nom), {
+      id: province.id,
+      nom: province.nom,
+      departements: province.departements,
     });
-    console.log(`  ✅ Domaine "${nomDomaine}" créé/vérifié`);
-  }
+    provinceIndex.set(normalize(province.abreviation), {
+      id: province.id,
+      nom: province.nom,
+      departements: province.departements,
+    });
 
-  console.log("✅ Domaines par défaut créés");
-
-
-
-  // Lecture du fichier Excel
-  const workbook = XLSX.readFile('prisma/ass.xlsx');
-  const sheetName = workbook.SheetNames[0];
-  const data = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-  let orgCount = 0;
-  let errorCount = 0;
-
-  for (const [index, row] of data.entries()) {
-    try {
-      console.log(`\n📝 Traitement de l'organisation ${index + 1}/${data.length}`);
-
-      const nomResponsable = row['Nom et Prénoms du principal responsable de la structure ?']?.trim();
-      if (!nomResponsable) {
-        console.log('⏭️ Aucun responsable, skip...');
-        continue;
-      }
-
-      // Gestion des départements
-      const nomProvince = row["Veuillez sélectionner vos zones d'intervention dans la liste suivante :"]?.trim();
-      const departementIds: string[] = [];
-
-      if (nomProvince) {
-        const zones = nomProvince.split(/\s*,\s*/).map(zone => zone.trim());
-
-        for (const zone of zones) {
-          const departement = await prisma.departement.findFirst({
-            where: {
-              nom: {
-                contains: zone,
-                mode: 'insensitive'
-              }
-            }
-          });
-
-          if (departement) {
-            departementIds.push(departement.id);
-          } else {
-            const province = await prisma.province.findFirst({
-              where: {
-                nom: {
-                  contains: zone,
-                  mode: 'insensitive'
-                }
-              },
-              include: { departements: true }
-            });
-
-            if (province && province.departements.length > 0) {
-              departementIds.push(province.departements[0].id);
-              console.warn(`⚠️ Département non trouvé pour: "${zone}", utilisé: "${province.departements[0].nom}"`);
-            }
-          }
-        }
-      }
-
-      const uniqueDepartementIds = [...new Set(departementIds)];
-
-      // Responsable
-      let responsable = await prisma.responsable.findFirst({
-        where: { nom: nomResponsable }
+    for (const departement of province.departements) {
+      departementIndex.set(normalize(departement.nom), {
+        id: departement.id,
+        nom: departement.nom,
+        provinceId: province.id,
       });
-
-      if (!responsable) {
-        responsable = await prisma.responsable.create({
-          data: {
-            nom: nomResponsable,
-            age: Number(row["Quelle est l'âge du responsable ? (en années)"]) || null,
-            nationalite: row['Veuillez entrer la nationalité du responsable'] || null,
-            situation: row['Quelle est sa situation professionnelle ?'] || null,
-            telephone: row['N° de téléphone :']?.toString() || null,
-            email: row['Adresse courriel :'] || null,
-            adresse: row["Adresse :"] || null,
-          },
-        });
-      }
-
-      // Domaine(s) - CORRECTION ICI
-      const domainesNoms = (row["Quels est son domaine d’intervention ?"] || "")
-        .split(',')
-        .map((d) => d.trim())
-        .filter((d) => d.length > 0);
-
-
-      // Créer ou connecter les domaines d'abord
-      const domaineOperations = [];
-      for (const nomDomaine of domainesNoms) {
-
-        if (nomDomaine) {
-          domaineOperations.push(
-            prisma.domaine.upsert({
-              where: { nom: nomDomaine },
-              update: {},
-              create: { nom: nomDomaine },
-            })
-          );
-        }
-      }
-
-      const domainesCrees = await Promise.all(domaineOperations);
-      const domaineIds = domainesCrees.map(d => ({ id: d.id }));
-      /*
-            // Organisation
-            const orga = await prisma.organisation.create({
-              data: {
-                nom: row["Quel est le nom de votre OSC ?"] || "Inconnu",
-                sigle: row["Quel est le sigle ?"] || null,
-                type: row["Quel est le type de votre OSC ?"] || null,
-                anneeCreation: Number(row["En quelle année à t-elle été crée ?"]) || null,
-                agrementTechniqueDelivred: row["Avez vous un agrément technique ?"] === "Oui",
-                adresse: row["Quelle est l'adresse du Siège de votre OSC ?"] || null,
-                commune: row["Commune de ESTUAIRE"] || null,
-                international: row["Est vous présent au niveau international ?"] === "Oui",
-                groupes: Number(row["En combien de groupes êtes vous subdivisé ?"]) || null,
-                adherents: Number(row["Nombre d'Adhérents de votre OSC ?"]) || null,
-                hommes: Number(row["Parmi vos adhérents, combien sont des hommes ?"]) || null,
-                femmes: Number(row["Parmi vos adhérents, combien sont des femmes ?"]) || null,
-                salaries: Number(row["Parmi vos adhérents, combien sont des salariés ?"]) || null,
-                benevoles: Number(row["Combien sont des bénévoles ?"]) || null,
-                cotisationMensuelle: Number(row["Quel est le montant des cotisations mensuelles ?"]) || null,
-                partenaires: row["Si oui, lequel / lesquels"] || null,
-                but: row[`Quel est "Le BUT" visé par l'association ?`] || null,
-                publicCible: row["Quel est le Public ciblé ?"] || null,
-                zones: Object.keys(row)
-                  .filter((key) => key.startsWith("Veuillez sélectionner vos zones d'intervention") && row[key] === 1)
-                  .map((key) => key.split("/")[1]),
-                responsable: {
-                  connect: { id: responsable.id },
-                },
-                domaines: {
-                  connect: domaineIds, // Utilisation directe des IDs
-                },
-                departements: {
-                  connect: uniqueDepartementIds.map(id => ({ id })),
-                },
-              },
-            });
-      
-            // Contact
-            const nomContact = row["Nom et Prénom(s) du Responsable :"]?.trim();
-            if (nomContact && nomContact !== nomResponsable) {
-              await prisma.contact.create({
-                data: {
-                  nom: nomContact,
-                  telephone: "0" + row["N° de téléphone"]?.toString() || null,
-                  email: row["Courriel :"] || null,
-                  organisationId: orga.id,
-                },
-              });
-            }
-      
-            orgCount++;
-            console.log(`✅ Organisation "${orga.nom}" créée avec ${domaineIds.length} domaine(s)`);
-      
-             */
-
-    } catch (error) {
-      errorCount++;
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`❌ Erreur sur l'organisation ${index + 1}:`, errorMessage);
     }
   }
 
-  console.log(`\n🎉 Résumé : ${orgCount} organisations créées, ${errorCount} erreurs`);
+  const domaineIndex = new Map<string, { id: string; nom: string }>();
+  for (const nom of DOMAINES_DEFAUT) {
+    const domaine = await prisma.domaine.create({ data: { nom } });
+    domaineIndex.set(normalize(nom), domaine);
+  }
+
+  const resolveDepartements = (rawZones: string): string[] => {
+    if (!rawZones) {
+      return [];
+    }
+
+    const tokens = rawZones
+      .split(/[,;/|]+/)
+      .map((token) => token.trim())
+      .filter(Boolean);
+
+    const ids = new Set<string>();
+
+    for (const token of tokens) {
+      const key = normalize(token);
+      const departement = departementIndex.get(key);
+      if (departement) {
+        ids.add(departement.id);
+        continue;
+      }
+
+      const province = provinceIndex.get(key);
+      if (province) {
+        province.departements.forEach((item) => ids.add(item.id));
+      }
+    }
+
+    return [...ids];
+  };
+
+  const resolveDomaines = async (rawDomaines: string): Promise<string[]> => {
+    const names = rawDomaines
+      .split(/[,;/|]+/)
+      .map((name) => name.trim())
+      .filter(Boolean);
+
+    const ids: string[] = [];
+    for (const name of names.length ? names : ['Développement Communautaire']) {
+      const key = normalize(name);
+      let domaine = domaineIndex.get(key);
+      if (!domaine) {
+        domaine = await prisma.domaine.upsert({
+          where: { nom: name },
+          update: {},
+          create: { nom: name },
+        });
+        domaineIndex.set(key, domaine);
+      }
+      ids.push(domaine.id);
+    }
+    return ids;
+  };
+
+  let orgCount = 0;
+  let pendingCount = 0;
+  const excelPath = path.join(process.cwd(), 'prisma', 'ass.xlsx');
+
+  if (fs.existsSync(excelPath)) {
+    const workbook = XLSX.readFile(excelPath);
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json<Record<string, any>>(sheet);
+
+    for (const [index, row] of rows.entries()) {
+      try {
+        const nom = cell(
+          row,
+          "Quel est le nom de votre OSC ?",
+          'Nom de votre OSC',
+          'Nom de l’association',
+          'nom',
+        );
+        if (!nom || normalize(nom) === 'inconnu') {
+          continue;
+        }
+
+        const nomResponsable = cell(
+          row,
+          'Nom et Prénoms du principal responsable de la structure ?',
+          'Nom et Prénom(s) du Responsable :',
+          'Responsable',
+        );
+
+        const zones = cell(
+          row,
+          "Veuillez sélectionner vos zones d'intervention dans la liste suivante :",
+          'Zones',
+          'Province',
+        );
+        const departementIds = resolveDepartements(zones);
+        const fallbackEstuaire = provinceIndex.get(normalize('Estuaire'));
+        const connectedDepartements =
+          departementIds.length > 0
+            ? departementIds
+            : fallbackEstuaire
+              ? [fallbackEstuaire.departements[0].id]
+              : [];
+
+        const domaineIds = await resolveDomaines(
+          cell(row, "Quels est son domaine d’intervention ?", "Quel est son domaine d'intervention ?", 'Domaine'),
+        );
+
+        const responsable = await prisma.responsable.create({
+          data: {
+            nom: nomResponsable || 'Responsable non renseigné',
+            age: toNumber(cell(row, "Quelle est l'âge du responsable ? (en années)", 'Age')),
+            nationalite: cell(row, 'Veuillez entrer la nationalité du responsable', 'Nationalité') || 'Gabonaise',
+            situation: cell(row, 'Quelle est sa situation professionnelle ?', 'Situation'),
+            telephone: cell(row, 'N° de téléphone :', 'N° de téléphone', 'Téléphone'),
+            email: cell(row, 'Adresse courriel :', 'Courriel :', 'Email') || null,
+            adresse: cell(row, 'Adresse :', "Quelle est l'adresse du Siège de votre OSC ?"),
+          },
+        });
+
+        const activated = index % 7 !== 0;
+        await prisma.organisation.create({
+          data: {
+            nom,
+            sigle: cell(row, 'Quel est le sigle ?', 'Sigle') || null,
+            type: cell(row, 'Quel est le type de votre OSC ?', 'Type') || 'Association',
+            anneeCreation: toNumber(cell(row, 'En quelle année à t-elle été crée ?', 'Année')),
+            agrementTechniqueDelivred: toBoolean(cell(row, 'Avez vous un agrément technique ?')),
+            adresse: cell(row, "Quelle est l'adresse du Siège de votre OSC ?", 'Adresse siège') || null,
+            commune: cell(row, 'Commune de ESTUAIRE', 'Commune') || null,
+            international: toBoolean(cell(row, 'Est vous présent au niveau international ?')),
+            groupes: toNumber(cell(row, 'En combien de groupes êtes vous subdivisé ?')),
+            adherents: toNumber(cell(row, "Nombre d'Adhérents de votre OSC ?")),
+            hommes: toNumber(cell(row, 'Parmi vos adhérents, combien sont des hommes ?')),
+            femmes: toNumber(cell(row, 'Parmi vos adhérents, combien sont des femmes ?')),
+            salaries: toNumber(cell(row, 'Parmi vos adhérents, combien sont des salariés ?')),
+            benevoles: toNumber(cell(row, 'Combien sont des bénévoles ?')),
+            cotisationMensuelle: toNumber(cell(row, 'Quel est le montant des cotisations mensuelles ?')),
+            partenaires: cell(row, 'Si oui, lequel / lesquels', 'Partenaires') || null,
+            but: cell(row, `Quel est "Le BUT" visé par l'association ?`, 'But') || null,
+            publicCible: cell(row, 'Quel est le Public ciblé ?', 'Public cible') || null,
+            activated,
+            responsable: { connect: { id: responsable.id } },
+            domaines: { connect: domaineIds.map((id) => ({ id })) },
+            departements: { connect: connectedDepartements.map((id) => ({ id })) },
+          },
+        });
+
+        orgCount += 1;
+        if (!activated) {
+          pendingCount += 1;
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(`⚠️ Ligne ${index + 1} ignorée: ${message}`);
+      }
+    }
+  } else {
+    console.warn('⚠️ Fichier prisma/ass.xlsx introuvable — organisations de démonstration uniquement.');
+  }
+
+  if (orgCount === 0) {
+    const estuaire = provinceIndex.get(normalize('Estuaire'));
+    const hautOgooue = provinceIndex.get(normalize('Haut-Ogooué'));
+    const communautaire = domaineIndex.get(normalize('Développement Communautaire'));
+    const education = domaineIndex.get(normalize('Éducation'));
+
+    const demoOrgs = [
+      {
+        nom: 'Mouvement des Jeunes pour le Développement',
+        sigle: 'MJD',
+        commune: 'Libreville',
+        activated: true,
+        departements: estuaire?.departements.filter((item) => ['Libreville', 'Komo-Mondah'].includes(item.nom)) || [],
+        domaines: [communautaire, education].filter(Boolean),
+      },
+      {
+        nom: 'Association Culturelle du Haut-Ogooué',
+        sigle: 'ACHO',
+        commune: 'Franceville',
+        activated: true,
+        departements: hautOgooue?.departements.filter((item) => item.nom === 'Mpassa') || [],
+        domaines: [domaineIndex.get(normalize('Culture'))].filter(Boolean),
+      },
+      {
+        nom: 'Collectif Jeunesse en Attente',
+        sigle: 'CJA',
+        commune: 'Owendo',
+        activated: false,
+        departements: estuaire?.departements.filter((item) => item.nom === 'Libreville') || [],
+        domaines: [communautaire].filter(Boolean),
+      },
+    ];
+
+    for (const demo of demoOrgs) {
+      const responsable = await prisma.responsable.create({
+        data: {
+          nom: `Responsable ${demo.sigle}`,
+          nationalite: 'Gabonaise',
+          telephone: '077000000',
+          email: `${demo.sigle.toLowerCase()}@jeunesse.ga`,
+        },
+      });
+
+      await prisma.organisation.create({
+        data: {
+          nom: demo.nom,
+          sigle: demo.sigle,
+          type: 'Association',
+          anneeCreation: 2018,
+          agrementTechniqueDelivred: true,
+          adresse: `Siège ${demo.commune}`,
+          commune: demo.commune,
+          international: false,
+          adherents: 40,
+          hommes: 18,
+          femmes: 22,
+          but: "Promouvoir l'engagement des jeunes et faciliter leur accès aux opportunités.",
+          publicCible: '15 à 35 ans',
+          activated: demo.activated,
+          responsable: { connect: { id: responsable.id } },
+          domaines: { connect: demo.domaines.map((item) => ({ id: item!.id })) },
+          departements: { connect: demo.departements.map((item) => ({ id: item.id })) },
+        },
+      });
+      orgCount += 1;
+      if (!demo.activated) {
+        pendingCount += 1;
+      }
+    }
+  }
+
+  console.log(`✅ ${orgCount} organisations importées (${pendingCount} en attente de validation)`);
+  console.log(`👤 Admin: ${process.env.DEFAULT_ADMIN_EMAIL || 'admin@jeunesse.ga'}`);
+  console.log(`🔑 Mot de passe initial: ${process.env.DEFAULT_ADMIN_PASSWORD || 'Admin@Jeunesse2026'}`);
 }
 
 main()
-  .catch((e) => {
-    console.error('❌ Erreur dans le seeder :', e);
+  .catch((error) => {
+    console.error('❌ Erreur dans le seeder :', error);
     process.exit(1);
   })
   .finally(async () => {

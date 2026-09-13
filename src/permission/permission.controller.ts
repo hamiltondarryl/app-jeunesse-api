@@ -54,7 +54,7 @@ export class PermissionController {
     @HttpCode(HttpStatus.OK)
     @Patch(':id')
     update(@Param('id') id: string, @Body() updatePermissionDto: UpdatePermissionDto) {
-      return this.permissionService.update(id, UpdatePermissionDto);
+      return this.permissionService.update(id, updatePermissionDto);
     }
   
     @ApiOperation({ summary: "Supprimer une permission" })

@@ -393,7 +393,8 @@ export const ModelName = {
   Domaine: 'Domaine',
   ActivityLog: 'ActivityLog',
   Province: 'Province',
-  Departement: 'Departement'
+  Departement: 'Departement',
+  Referentiel: 'Referentiel'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -409,7 +410,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "passwordReset" | "role" | "permission" | "organisation" | "responsable" | "domaine" | "activityLog" | "province" | "departement"
+    modelProps: "user" | "passwordReset" | "role" | "permission" | "organisation" | "responsable" | "domaine" | "activityLog" | "province" | "departement" | "referentiel"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1153,6 +1154,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Referentiel: {
+      payload: Prisma.$ReferentielPayload<ExtArgs>
+      fields: Prisma.ReferentielFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ReferentielFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferentielPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ReferentielFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferentielPayload>
+        }
+        findFirst: {
+          args: Prisma.ReferentielFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferentielPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ReferentielFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferentielPayload>
+        }
+        findMany: {
+          args: Prisma.ReferentielFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferentielPayload>[]
+        }
+        create: {
+          args: Prisma.ReferentielCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferentielPayload>
+        }
+        createMany: {
+          args: Prisma.ReferentielCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ReferentielCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferentielPayload>[]
+        }
+        delete: {
+          args: Prisma.ReferentielDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferentielPayload>
+        }
+        update: {
+          args: Prisma.ReferentielUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferentielPayload>
+        }
+        deleteMany: {
+          args: Prisma.ReferentielDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ReferentielUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ReferentielUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferentielPayload>[]
+        }
+        upsert: {
+          args: Prisma.ReferentielUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ReferentielPayload>
+        }
+        aggregate: {
+          args: Prisma.ReferentielAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateReferentiel>
+        }
+        groupBy: {
+          args: Prisma.ReferentielGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReferentielGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ReferentielCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ReferentielCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1202,6 +1277,7 @@ export const UserScalarFieldEnum = {
   fcmToken: 'fcmToken',
   activated: 'activated',
   passwordDefault: 'passwordDefault',
+  tokenVersion: 'tokenVersion',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1338,6 +1414,20 @@ export const DepartementScalarFieldEnum = {
 export type DepartementScalarFieldEnum = (typeof DepartementScalarFieldEnum)[keyof typeof DepartementScalarFieldEnum]
 
 
+export const ReferentielScalarFieldEnum = {
+  id: 'id',
+  categorie: 'categorie',
+  code: 'code',
+  libelle: 'libelle',
+  ordre: 'ordre',
+  actif: 'actif',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ReferentielScalarFieldEnum = (typeof ReferentielScalarFieldEnum)[keyof typeof ReferentielScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1390,20 +1480,6 @@ export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
- * Reference to a field of type 'DateTime'
- */
-export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
-    
-
-
-/**
- * Reference to a field of type 'DateTime[]'
- */
-export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
-    
-
-
-/**
  * Reference to a field of type 'Int'
  */
 export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -1414,6 +1490,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DateTime'
+ */
+export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
+    
+
+
+/**
+ * Reference to a field of type 'DateTime[]'
+ */
+export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
     
 
 
@@ -1549,6 +1639,7 @@ export type GlobalOmitConfig = {
   activityLog?: Prisma.ActivityLogOmit
   province?: Prisma.ProvinceOmit
   departement?: Prisma.DepartementOmit
+  referentiel?: Prisma.ReferentielOmit
 }
 
 /* Types for Logging */

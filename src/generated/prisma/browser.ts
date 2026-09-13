@@ -67,3 +67,8 @@ export type Province = Prisma.ProvinceModel
  * 
  */
 export type Departement = Prisma.DepartementModel
+/**
+ * Model Referentiel
+ * 
+ */
+export type Referentiel = Prisma.ReferentielModel

@@ -1,33 +1,75 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Logger, ValidationPipe } from '@nestjs/common';
+import { flattenValidationErrors } from './common/validation-errors';
 import helmet from 'helmet';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import * as bodyParser from 'body-parser';
-import { join } from 'path'; // Add this import statement
-import * as express from 'express';
-import * as process from 'process';
+import * as fs from 'fs';
+import { join } from 'path';
+import { AppExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret || jwtSecret === 'undefined' || jwtSecret.length < 16) {
+    throw new Error('JWT_SECRET doit être défini avec au moins 16 caractères.');
+  }
 
-  
+  fs.mkdirSync(join(process.cwd(), 'uploads', 'organisations', 'public'), {
+    recursive: true,
+  });
+
+  const app = await NestFactory.create(AppModule, { logger: ['error', 'warn', 'log'] });
+  const isDev = process.env.APP_STATUS === 'DEV';
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
+
   app.setGlobalPrefix('api');
-  app.useGlobalPipes(new ValidationPipe({
-    transform: true, // Active la transformation automatique
-    transformOptions: {
-      enableImplicitConversion: true, // Active la conversion implicite
-    },
-  }),)
-  app.use(helmet());
-  if (process.env.APP_STATUS == "DEV") {
-    // Swagger documentation si on n'est pas en production
+  app.useGlobalFilters(new AppExceptionFilter());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+      exceptionFactory: (errors) =>
+        new BadRequestException({
+          message: 'Données invalides. Vérifiez les champs du formulaire.',
+          errors: flattenValidationErrors(errors),
+        }),
+    }),
+  );
+  app.use(
+    helmet({
+      hidePoweredBy: true,
+      frameguard: { action: 'deny' },
+      noSniff: true,
+      referrerPolicy: { policy: 'no-referrer' },
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+    }),
+  );
+
+  app.enableCors({
+    origin: isDev
+      ? [frontendUrl, 'http://localhost:4200', 'http://127.0.0.1:4200']
+      : [
+          'http://pamj-dgjase.com',
+          'https://pamj-dgjase.com',
+          'http://www.pamj-dgjase.com',
+          'https://www.pamj-dgjase.com',
+        ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    credentials: true,
+  });
+
+  if (isDev) {
     const config = new DocumentBuilder()
       .setTitle('JEUNESSE-APP API')
-      .setDescription('API(s) pour la gestion des données de JEUNESSE-APP')
+      .setDescription('API pour la gestion des associations de jeunesse')
       .setVersion('1.0')
-      .addTag('JEUNESSE-APP - Documentation')
       .addBearerAuth(
         { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
         'access-token',
@@ -35,41 +77,15 @@ async function bootstrap() {
       .build();
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('doc', app, document);
-  } else {
-    // Ajoutez cette ligne pour activer CORS pour votre application
-    app.enableCors({
-      origin: [
-        'http://pamj-dgjase.com',
-        'https://pamj-dgjase.com',
-        'http://www.pamj-dgjase.com',
-        'https://www.pamj-dgjase.com',
-        'http://187.124.32.233'
-      ],
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: [
-        'Content-Type',
-        'Authorization',
-        'X-Requested-With',
-        'Accept',
-        'Origin',
-        'Access-Control-Allow-Origin',
-        'Access-Control-Allow-Headers',
-        'Access-Control-Allow-Methods'
-      ],
-      credentials: true,  // Si vous utilisez des cookies/sessions
-      preflightContinue: false,
-      optionsSuccessStatus: 204
-    });
   }
 
-  app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
+  app.use(bodyParser.json({ limit: '10mb' }));
+  app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
-  app.use(bodyParser.json({ limit: '50mb' }));
-  app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
-  await app.listen(process.env.PORT || 4000);
-  // Obtenez l'URL de l'application
+  const port = Number(process.env.PORT) || 4000;
+  await app.listen(port);
   const url = await app.getUrl();
-  // Ajoutez cette URL dans un service partagé ou dans une configuration globale
   app.get(ConfigService).set('APP_URL', url);
+  new Logger('Bootstrap').log(`API disponible sur ${url}`);
 }
 bootstrap();

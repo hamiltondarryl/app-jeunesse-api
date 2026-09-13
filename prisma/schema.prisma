@@ -46,6 +46,7 @@ model User {
   fcmToken       String?
   activated      Boolean       @default(false)
   passwordDefault   Boolean       @default(true)
+  tokenVersion   Int           @default(0)
   role           Role          @relation(fields: [roleId], references: [id], onDelete: Restrict)
   ActivityLog    ActivityLog[]
   createdAt      DateTime      @default(now())
@@ -173,4 +174,18 @@ model Departement {
   createdAt     DateTime       @default(now())
 
   @@unique([nom, provinceId])
+}
+
+model Referentiel {
+  id        String   @id @default(uuid())
+  categorie String
+  code      String
+  libelle   String
+  ordre     Int      @default(0)
+  actif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([categorie, code])
+  @@index([categorie, actif, ordre])
 }

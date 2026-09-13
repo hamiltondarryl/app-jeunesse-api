@@ -20,8 +20,18 @@ export type UserModel = runtime.Types.Result.DefaultSelection<Prisma.$UserPayloa
 
 export type AggregateUser = {
   _count: UserCountAggregateOutputType | null
+  _avg: UserAvgAggregateOutputType | null
+  _sum: UserSumAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
+}
+
+export type UserAvgAggregateOutputType = {
+  tokenVersion: number | null
+}
+
+export type UserSumAggregateOutputType = {
+  tokenVersion: number | null
 }
 
 export type UserMinAggregateOutputType = {
@@ -34,6 +44,7 @@ export type UserMinAggregateOutputType = {
   fcmToken: string | null
   activated: boolean | null
   passwordDefault: boolean | null
+  tokenVersion: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -48,6 +59,7 @@ export type UserMaxAggregateOutputType = {
   fcmToken: string | null
   activated: boolean | null
   passwordDefault: boolean | null
+  tokenVersion: number | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -62,11 +74,20 @@ export type UserCountAggregateOutputType = {
   fcmToken: number
   activated: number
   passwordDefault: number
+  tokenVersion: number
   createdAt: number
   updatedAt: number
   _all: number
 }
 
+
+export type UserAvgAggregateInputType = {
+  tokenVersion?: true
+}
+
+export type UserSumAggregateInputType = {
+  tokenVersion?: true
+}
 
 export type UserMinAggregateInputType = {
   id?: true
@@ -78,6 +99,7 @@ export type UserMinAggregateInputType = {
   fcmToken?: true
   activated?: true
   passwordDefault?: true
+  tokenVersion?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -92,6 +114,7 @@ export type UserMaxAggregateInputType = {
   fcmToken?: true
   activated?: true
   passwordDefault?: true
+  tokenVersion?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -106,6 +129,7 @@ export type UserCountAggregateInputType = {
   fcmToken?: true
   activated?: true
   passwordDefault?: true
+  tokenVersion?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -149,6 +173,18 @@ export type UserAggregateArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: UserAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: UserSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: UserMinAggregateInputType
@@ -179,6 +215,8 @@ export type UserGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
   take?: number
   skip?: number
   _count?: UserCountAggregateInputType | true
+  _avg?: UserAvgAggregateInputType
+  _sum?: UserSumAggregateInputType
   _min?: UserMinAggregateInputType
   _max?: UserMaxAggregateInputType
 }
@@ -193,9 +231,12 @@ export type UserGroupByOutputType = {
   fcmToken: string | null
   activated: boolean
   passwordDefault: boolean
+  tokenVersion: number
   createdAt: Date
   updatedAt: Date
   _count: UserCountAggregateOutputType | null
+  _avg: UserAvgAggregateOutputType | null
+  _sum: UserSumAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
 }
@@ -228,6 +269,7 @@ export type UserWhereInput = {
   fcmToken?: Prisma.StringNullableFilter<"User"> | string | null
   activated?: Prisma.BoolFilter<"User"> | boolean
   passwordDefault?: Prisma.BoolFilter<"User"> | boolean
+  tokenVersion?: Prisma.IntFilter<"User"> | number
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
@@ -244,6 +286,7 @@ export type UserOrderByWithRelationInput = {
   fcmToken?: Prisma.SortOrderInput | Prisma.SortOrder
   activated?: Prisma.SortOrder
   passwordDefault?: Prisma.SortOrder
+  tokenVersion?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   role?: Prisma.RoleOrderByWithRelationInput
@@ -263,6 +306,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   fcmToken?: Prisma.StringNullableFilter<"User"> | string | null
   activated?: Prisma.BoolFilter<"User"> | boolean
   passwordDefault?: Prisma.BoolFilter<"User"> | boolean
+  tokenVersion?: Prisma.IntFilter<"User"> | number
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   role?: Prisma.XOR<Prisma.RoleScalarRelationFilter, Prisma.RoleWhereInput>
@@ -279,11 +323,14 @@ export type UserOrderByWithAggregationInput = {
   fcmToken?: Prisma.SortOrderInput | Prisma.SortOrder
   activated?: Prisma.SortOrder
   passwordDefault?: Prisma.SortOrder
+  tokenVersion?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
+  _avg?: Prisma.UserAvgOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
   _min?: Prisma.UserMinOrderByAggregateInput
+  _sum?: Prisma.UserSumOrderByAggregateInput
 }
 
 export type UserScalarWhereWithAggregatesInput = {
@@ -299,6 +346,7 @@ export type UserScalarWhereWithAggregatesInput = {
   fcmToken?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   activated?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   passwordDefault?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  tokenVersion?: Prisma.IntWithAggregatesFilter<"User"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
 }
@@ -312,6 +360,7 @@ export type UserCreateInput = {
   fcmToken?: string | null
   activated?: boolean
   passwordDefault?: boolean
+  tokenVersion?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
@@ -328,6 +377,7 @@ export type UserUncheckedCreateInput = {
   fcmToken?: string | null
   activated?: boolean
   passwordDefault?: boolean
+  tokenVersion?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   ActivityLog?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
@@ -342,6 +392,7 @@ export type UserUpdateInput = {
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
@@ -358,6 +409,7 @@ export type UserUncheckedUpdateInput = {
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ActivityLog?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
@@ -373,6 +425,7 @@ export type UserCreateManyInput = {
   fcmToken?: string | null
   activated?: boolean
   passwordDefault?: boolean
+  tokenVersion?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -386,6 +439,7 @@ export type UserUpdateManyMutationInput = {
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -400,6 +454,7 @@ export type UserUncheckedUpdateManyInput = {
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -414,8 +469,13 @@ export type UserCountOrderByAggregateInput = {
   fcmToken?: Prisma.SortOrder
   activated?: Prisma.SortOrder
   passwordDefault?: Prisma.SortOrder
+  tokenVersion?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type UserAvgOrderByAggregateInput = {
+  tokenVersion?: Prisma.SortOrder
 }
 
 export type UserMaxOrderByAggregateInput = {
@@ -428,6 +488,7 @@ export type UserMaxOrderByAggregateInput = {
   fcmToken?: Prisma.SortOrder
   activated?: Prisma.SortOrder
   passwordDefault?: Prisma.SortOrder
+  tokenVersion?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -442,8 +503,13 @@ export type UserMinOrderByAggregateInput = {
   fcmToken?: Prisma.SortOrder
   activated?: Prisma.SortOrder
   passwordDefault?: Prisma.SortOrder
+  tokenVersion?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+}
+
+export type UserSumOrderByAggregateInput = {
+  tokenVersion?: Prisma.SortOrder
 }
 
 export type UserListRelationFilter = {
@@ -471,6 +537,14 @@ export type NullableStringFieldUpdateOperationsInput = {
 
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean
+}
+
+export type IntFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -544,6 +618,7 @@ export type UserCreateWithoutRoleInput = {
   fcmToken?: string | null
   activated?: boolean
   passwordDefault?: boolean
+  tokenVersion?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   ActivityLog?: Prisma.ActivityLogCreateNestedManyWithoutUserInput
@@ -558,6 +633,7 @@ export type UserUncheckedCreateWithoutRoleInput = {
   fcmToken?: string | null
   activated?: boolean
   passwordDefault?: boolean
+  tokenVersion?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   ActivityLog?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutUserInput
@@ -602,6 +678,7 @@ export type UserScalarWhereInput = {
   fcmToken?: Prisma.StringNullableFilter<"User"> | string | null
   activated?: Prisma.BoolFilter<"User"> | boolean
   passwordDefault?: Prisma.BoolFilter<"User"> | boolean
+  tokenVersion?: Prisma.IntFilter<"User"> | number
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
 }
@@ -615,6 +692,7 @@ export type UserCreateWithoutActivityLogInput = {
   fcmToken?: string | null
   activated?: boolean
   passwordDefault?: boolean
+  tokenVersion?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   role: Prisma.RoleCreateNestedOneWithoutUsersInput
@@ -630,6 +708,7 @@ export type UserUncheckedCreateWithoutActivityLogInput = {
   fcmToken?: string | null
   activated?: boolean
   passwordDefault?: boolean
+  tokenVersion?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -659,6 +738,7 @@ export type UserUpdateWithoutActivityLogInput = {
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   role?: Prisma.RoleUpdateOneRequiredWithoutUsersNestedInput
@@ -674,6 +754,7 @@ export type UserUncheckedUpdateWithoutActivityLogInput = {
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -687,6 +768,7 @@ export type UserCreateManyRoleInput = {
   fcmToken?: string | null
   activated?: boolean
   passwordDefault?: boolean
+  tokenVersion?: number
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -700,6 +782,7 @@ export type UserUpdateWithoutRoleInput = {
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ActivityLog?: Prisma.ActivityLogUpdateManyWithoutUserNestedInput
@@ -714,6 +797,7 @@ export type UserUncheckedUpdateWithoutRoleInput = {
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   ActivityLog?: Prisma.ActivityLogUncheckedUpdateManyWithoutUserNestedInput
@@ -728,6 +812,7 @@ export type UserUncheckedUpdateManyWithoutRoleInput = {
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   passwordDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  tokenVersion?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -773,6 +858,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   fcmToken?: boolean
   activated?: boolean
   passwordDefault?: boolean
+  tokenVersion?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
@@ -790,6 +876,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   fcmToken?: boolean
   activated?: boolean
   passwordDefault?: boolean
+  tokenVersion?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
@@ -805,6 +892,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   fcmToken?: boolean
   activated?: boolean
   passwordDefault?: boolean
+  tokenVersion?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
@@ -820,11 +908,12 @@ export type UserSelectScalar = {
   fcmToken?: boolean
   activated?: boolean
   passwordDefault?: boolean
+  tokenVersion?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "username" | "password" | "roleId" | "passwordIsRest" | "fcmToken" | "activated" | "passwordDefault" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "username" | "password" | "roleId" | "passwordIsRest" | "fcmToken" | "activated" | "passwordDefault" | "tokenVersion" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   role?: boolean | Prisma.RoleDefaultArgs<ExtArgs>
   ActivityLog?: boolean | Prisma.User$ActivityLogArgs<ExtArgs>
@@ -853,6 +942,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     fcmToken: string | null
     activated: boolean
     passwordDefault: boolean
+    tokenVersion: number
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["user"]>
@@ -1289,6 +1379,7 @@ export interface UserFieldRefs {
   readonly fcmToken: Prisma.FieldRef<"User", 'String'>
   readonly activated: Prisma.FieldRef<"User", 'Boolean'>
   readonly passwordDefault: Prisma.FieldRef<"User", 'Boolean'>
+  readonly tokenVersion: Prisma.FieldRef<"User", 'Int'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
 }

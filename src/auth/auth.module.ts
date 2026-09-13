@@ -10,16 +10,17 @@ import { PassportModule } from '@nestjs/passport';
 
 @Module({
   controllers: [AuthController, ],
-  providers: [AuthService, AuthService, PrismaService, JwtService, JwtStrategy, ActivityLogService],
+  providers: [AuthService, PrismaService, JwtService, JwtStrategy, ActivityLogService],
   imports: [
     PrismaModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.register({
-      global : true,
-      secretOrPrivateKey :  String(process.env.JWT_SECRET),
-      secret: String(process.env.JWT_SECRET),
-      signOptions: { expiresIn: '1d' }
-    })
+    JwtModule.registerAsync({
+      global: true,
+      useFactory: () => ({
+        secret: process.env.JWT_SECRET,
+        signOptions: { expiresIn: '8h' },
+      }),
+    }),
   ]
 })
 export class AuthModule {}

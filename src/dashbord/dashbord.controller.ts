@@ -1,22 +1,40 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, UseGuards, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Header, HttpCode, HttpStatus, Query, Res, UseGuards } from '@nestjs/common';
 import { DashbordService } from './dashbord.service';
 import { Permissions } from 'src/auth/guards/permissions.decorator';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from 'src/auth/guards/permissions.guard';
+import { Response } from 'express';
 
-@ApiTags("Tableau de bord")
+@ApiTags('Tableau de bord')
 @Controller('dashbord')
 export class DashbordController {
-  
-  constructor(private readonly dashbordService: DashbordService) { }
+  constructor(private readonly dashbordService: DashbordService) {}
 
-  @ApiOperation({ summary: "Récupérer les données du tableau de bord" })
+  @ApiOperation({ summary: 'Récupérer les données du tableau de bord' })
+  @ApiQuery({ name: 'debut', required: false })
+  @ApiQuery({ name: 'fin', required: false })
   @UseGuards(JwtAuthGuard, PermissionsGuard)
-  @Permissions('ACCESS_APP') // La permission requise
+  @Permissions('ACCESS_APP')
   @HttpCode(HttpStatus.OK)
   @Get()
-  async findAll() {
-    return await this.dashbordService.findAll();
+  findAll(@Query('debut') debut?: string, @Query('fin') fin?: string) {
+    return this.dashbordService.findAll(debut, fin);
+  }
+
+  @ApiOperation({ summary: 'Exporter le tableau de bord en Excel' })
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('ACCESS_APP')
+  @Get('export/excel')
+  @Header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+  async exportExcel(
+    @Query('debut') debut: string,
+    @Query('fin') fin: string,
+    @Res() res: Response,
+  ) {
+    const buffer = await this.dashbordService.exportExcel(debut, fin);
+    const filename = `tableau-de-bord-jeunesse.xlsx`;
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(buffer);
   }
 }

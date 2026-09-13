@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from './prisma/prisma.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -19,6 +20,9 @@ import { diskStorage } from 'multer';
 import { MulterModule } from '@nestjs/platform-express';
 import { extname } from 'path';
 import { DashbordModule } from './dashbord/dashbord.module';
+import { FilesModule } from './files/files.module';
+import { ReferentielModule } from './referentiel/referentiel.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -27,7 +31,7 @@ import { DashbordModule } from './dashbord/dashbord.module';
       throttlers: [
         {
           ttl: 60000,
-          limit: 10,
+          limit: 60,
         },
       ],
     }),
@@ -35,7 +39,7 @@ import { DashbordModule } from './dashbord/dashbord.module';
       storage: diskStorage({
         destination: './uploads',
         filename: (req, file, callback) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
           callback(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`);
         },
       }),
@@ -43,22 +47,21 @@ import { DashbordModule } from './dashbord/dashbord.module';
     ConfigModule.forRoot({ isGlobal: true }),
     MailerModule.forRoot({
       transport: {
-        host: String(process.env.MAIL_HOST),
-        auth: {
-          user: String(process.env.MAIL_USER),
-          pass: String(process.env.MAIL_PASS),
-        },
-        port: Number(process.env.MAIL_PORT),
+        host: String(process.env.MAIL_HOST || 'localhost'),
+        auth: process.env.MAIL_USER
+          ? {
+              user: String(process.env.MAIL_USER),
+              pass: String(process.env.MAIL_PASS),
+            }
+          : undefined,
+        port: Number(process.env.MAIL_PORT) || 587,
         tls: {
-          rejectUnauthorized: false, // Ignorer les erreurs de certificat (à utiliser avec précaution)
+          rejectUnauthorized: process.env.APP_STATUS !== 'DEV',
         },
-        connectionTimeout: 100000,
-        greetingTimeout: 100000, // Délai d'attente pour la réponse du serveur
-        socketTimeout: 100000,
-        debug: true,
-        secure: false,
+        secure: process.env.MAIL_SECURE === 'true',
       },
     }),
+    MailModule,
     UserModule,
     RoleModule,
     PermissionModule,
@@ -69,8 +72,17 @@ import { DashbordModule } from './dashbord/dashbord.module';
     DepartementModule,
     ProvinceModule,
     DashbordModule,
+    ReferentielModule,
+    FilesModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
+  providers: [
+    AppService,
+    PrismaService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
-export class AppModule { }
+export class AppModule {}

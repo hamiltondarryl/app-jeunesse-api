@@ -53,3 +53,15 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
+
+
+Voici les comptes créés par le seed, pour l’espace d’administration :
+
+Administrateur
+
+Email : admin@jeunesse.ga
+Mot de passe : Admin@Jeunesse2026
+Gestionnaire
+
+Email : gestionnaire@jeunesse.ga
+Mot de passe : Admin@Jeunesse2026

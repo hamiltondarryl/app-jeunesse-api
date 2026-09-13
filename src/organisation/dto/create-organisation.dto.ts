@@ -1,6 +1,7 @@
 // create-organisation.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from "class-transformer";
+import { Transform } from "class-transformer";
 import { 
   IsArray, 
   IsBoolean, 
@@ -11,47 +12,9 @@ import {
   Min, 
   ValidateNested 
 } from "class-validator";
+import { ResponsableDto } from './responsable.dto';
 
-class CreateResponsableDto {
-  @ApiProperty({ description: "Nom du responsable" })
-  @IsString()
-  nom: string;
-
-  @ApiProperty({ description: "Âge du responsable", required: false })
-  @IsOptional()
-  @IsInt()
-  age?: number;
-
-  @ApiProperty({ description: "Nationalité du responsable", required: false })
-  @IsOptional()
-  @IsString()
-  nationalite?: string;
-
-  @ApiProperty({ description: "Situation familiale", required: false })
-  @IsOptional()
-  @IsString()
-  situation?: string;
-
-  @ApiProperty({ description: "Situation matrimoniale", required: false })
-  @IsOptional()
-  @IsString()
-  situationMatrimoniale?: string;
-
-  @ApiProperty({ description: "Téléphone du responsable", required: false })
-  @IsOptional()
-  @IsString()
-  telephone?: string;
-
-  @ApiProperty({ description: "Email du responsable", required: false })
-  @IsOptional()
-  @IsString()
-  email?: string;
-
-  @ApiProperty({ description: "Adresse du responsable", required: false })
-  @IsOptional()
-  @IsString()
-  adresse?: string;
-}
+export { ResponsableDto as CreateResponsableDto } from './responsable.dto';
 
 export class CreateOrganisationDto {
   @ApiProperty({ description: "Nom de l'organisation" })
@@ -80,6 +43,7 @@ export class CreateOrganisationDto {
   anneeCreation?: number;
 
   @ApiProperty({ description: "Agrément technique délivré" })
+  @Transform(({ value }) => value === true || value === 'true')
   @IsBoolean()
   agrementTechniqueDelivred: boolean | string;
 
@@ -94,6 +58,7 @@ export class CreateOrganisationDto {
   commune?: string;
 
   @ApiProperty({ description: "Organisation internationale" })
+  @Transform(({ value }) => value === true || value === 'true')
   @IsBoolean()
   international: boolean;
 
@@ -171,18 +136,18 @@ export class CreateOrganisationDto {
 
   @ApiProperty({ description: "Informations du responsable" })
   @ValidateNested()
-  @Type(() => CreateResponsableDto)
-  responsable: CreateResponsableDto;
+  @Type(() => ResponsableDto)
+  responsable: ResponsableDto;
 
   @ApiProperty({ description: "Informations du secretaire general" })
   @ValidateNested()
-  @Type(() => CreateResponsableDto)
-  secretaireGeneral: CreateResponsableDto;
+  @Type(() => ResponsableDto)
+  secretaireGeneral: ResponsableDto;
 
   @ApiProperty({ description: "Informations du tresorier" })
   @ValidateNested()
-  @Type(() => CreateResponsableDto)
-  tresorier: CreateResponsableDto;
+  @Type(() => ResponsableDto)
+  tresorier: ResponsableDto;
 }
 
 

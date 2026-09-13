@@ -17,7 +17,6 @@ export class ActivityLogService {
           userId,
         },
       });
-      console.log(`[LOG] Action enregistrée : ${action} - ${description}`);
     } catch (error) {
       throw error;
     }

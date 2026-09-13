@@ -21,12 +21,15 @@ export class UserService {
   async create(createUserDto: CreateUserDto, userId: string) {
     try {
       const { username, email, roleId } = createUserDto;
-      const defaultPassword = await bcrypt.hash('azerty', 10);
+      const defaultPassword = await bcrypt.hash(
+        process.env.DEFAULT_USER_PASSWORD || 'Jeunesse@2026',
+        12,
+      );
       const existRole = await this.prismaService.role.findUnique({ where: { id: roleId } });
 
       if (!existRole) {
         throw new ValidationException({
-          roleId: ["Ce role n'existe pas"],
+          roleId: ["Ce rôle n'existe pas"],
         });
       }
 
