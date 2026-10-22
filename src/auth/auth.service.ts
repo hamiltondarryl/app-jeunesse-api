@@ -8,12 +8,10 @@ import { ActionType, User } from 'src/generated/prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as dayjs from 'dayjs';
 import { randomInt } from 'crypto';
-import { Response } from 'express';
 import { ResetPassDto } from './dto/reset_pass.dto';
 import { ChangePassDto } from './dto/change_pass.dto';
 import { MailService } from 'src/mail/mail.service';
 
-const AUTH_COOKIE = 'access_token';
 const RESET_CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
 @Injectable()
@@ -99,21 +97,6 @@ export class AuthService {
     const payload = { id, email, tv: tokenVersion };
     const secret = this.configService.get<string>('JWT_SECRET');
     return this.jwtService.sign(payload, { secret, expiresIn: '8h' });
-  }
-
-  attachAuthCookie(res: Response, token: string) {
-    const isDev = this.configService.get('APP_STATUS') === 'DEV';
-    res.cookie(AUTH_COOKIE, token, {
-      httpOnly: true,
-      secure: !isDev,
-      sameSite: isDev ? 'lax' : 'strict',
-      maxAge: 8 * 60 * 60 * 1000,
-      path: '/',
-    });
-  }
-
-  clearAuthCookie(res: Response) {
-    res.clearCookie(AUTH_COOKIE, { path: '/' });
   }
 
   private toPublicUser(user: User & { role?: { name: string; code: string; permissions?: { name: string }[] } }) {

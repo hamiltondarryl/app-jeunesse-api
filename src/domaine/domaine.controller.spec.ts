@@ -9,7 +9,7 @@ describe('DomaineController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [DomaineController],
       providers: [DomaineService],
-    }).compile();
+    }).useMocker(() => ({})).compile();
 
     controller = module.get<DomaineController>(DomaineController);
   });

@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Body, Patch, HttpCode, HttpStatus, UseGuards, Req, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginAdminDto } from './dto/login-admin.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -11,7 +12,8 @@ import { ChangePassDto } from './dto/change_pass.dto';
 import { ForgetPassDto } from './dto/forget_pass.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { Throttle } from '@nestjs/throttler';
-import { Response } from 'express';
+import { clearAuthCookies, setAuthCookies } from './auth-cookie';
+import { createCsrfToken } from '../common/csrf.middleware';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -25,8 +27,8 @@ export class AuthController {
   @Post('login-admin')
   async login(@Body() loginAdminDto: LoginAdminDto, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.loginAdmin(loginAdminDto);
-    this.authService.attachAuthCookie(res, result.accessToken);
-    return result;
+    setAuthCookies(res, result.accessToken, createCsrfToken());
+    return { user: result.user };
   }
 
   @ApiOperation({ summary: 'Demander un code de réinitialisation de mot de passe' })
@@ -50,9 +52,9 @@ export class AuthController {
   ) {
     const result = await this.authService.resetPassword(resetPassDto, req.user.id);
     if (result.accessToken) {
-      this.authService.attachAuthCookie(res, result.accessToken);
+      setAuthCookies(res, result.accessToken, createCsrfToken());
     }
-    return result;
+    return { success: true };
   }
 
   @ApiOperation({ summary: "Changer le mot de passe de l'utilisateur" })
@@ -67,9 +69,9 @@ export class AuthController {
   ) {
     const result = await this.authService.changePassword(changePassDto, req.user.id);
     if (result.accessToken) {
-      this.authService.attachAuthCookie(res, result.accessToken);
+      setAuthCookies(res, result.accessToken, createCsrfToken());
     }
-    return result;
+    return { success: true };
   }
 
   @ApiOperation({ summary: "Profil de l'utilisateur connecté" })
@@ -94,7 +96,7 @@ export class AuthController {
   @Post('logout')
   async logout(@Req() req, @Res({ passthrough: true }) res: Response) {
     const result = await this.authService.logout(req.user.id);
-    this.authService.clearAuthCookie(res);
+    clearAuthCookies(res);
     return result;
   }
 }

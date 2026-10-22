@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as XLSX from 'xlsx';
 import { seedReferentiels } from './referentiels';
 
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 
 const adapter = new PrismaPg({
   connectionString: String(process.env.DATABASE_URL),

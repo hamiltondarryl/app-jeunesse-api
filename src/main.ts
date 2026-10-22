@@ -11,6 +11,8 @@ import { join } from 'path';
 import { AppExceptionFilter } from './common/filters/http-exception.filter';
 import { uploadsRoot } from './common/uploads';
 import { resolvePublicUrls } from './common/public-urls';
+import { csrfMiddleware } from './common/csrf.middleware';
+import cookieParser = require('cookie-parser');
 
 async function bootstrap() {
   const jwtSecret = process.env.JWT_SECRET;
@@ -23,6 +25,12 @@ async function bootstrap() {
   });
 
   const app = await NestFactory.create(AppModule, { logger: ['error', 'warn', 'log'] });
+  const http = app.getHttpAdapter().getInstance();
+  http.disable('x-powered-by');
+  http.set('trust proxy', 1);
+  app.use(cookieParser());
+  app.use(csrfMiddleware);
+
   const isDev = process.env.APP_STATUS === 'DEV';
   const publicUrls = resolvePublicUrls();
   const frontendUrl = publicUrls.frontendUrl;
@@ -47,7 +55,6 @@ async function bootstrap() {
         }),
     }),
   );
-  app.getHttpAdapter().getInstance().set('trust proxy', 1);
   app.use(
     helmet({
       hidePoweredBy: true,
@@ -55,6 +62,7 @@ async function bootstrap() {
       noSniff: true,
       referrerPolicy: { policy: 'no-referrer' },
       crossOriginResourcePolicy: { policy: 'cross-origin' },
+      // Les pièces PDF sont affichées par le navigateur : une politique de contenu ici bloquerait la visionneuse.
       contentSecurityPolicy: false,
       hsts: isDev
         ? false
@@ -65,13 +73,13 @@ async function bootstrap() {
   app.enableCors({
     origin: corsOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-CSRF-Token'],
     credentials: true,
   });
 
   if (isDev) {
     const config = new DocumentBuilder()
-      .setTitle('JEUNESSE-APP API')
+      .setTitle('API Jeunesse')
       .setDescription('API pour la gestion des associations de jeunesse')
       .setVersion('1.0')
       .addBearerAuth(

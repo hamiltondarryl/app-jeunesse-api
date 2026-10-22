@@ -1,21 +1,13 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import { ExtractJwt, JwtFromRequestFunction, Strategy } from 'passport-jwt';
 import { AuthService } from './auth.service';
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
+import { SESSION_COOKIE } from './auth-cookie';
 
-function cookieExtractor(req: Request): string | null {
-  const header = req?.headers?.cookie;
-  if (!header) {
-    return null;
-  }
-  const match = header
-    .split(';')
-    .map((item) => item.trim())
-    .find((item) => item.startsWith('access_token='));
-  return match ? decodeURIComponent(match.slice('access_token='.length)) : null;
-}
+const fromSessionCookie: JwtFromRequestFunction = (request: Request) =>
+  request?.cookies?.[SESSION_COOKIE] ?? null;
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -23,11 +15,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private authService: AuthService,
     configService: ConfigService,
   ) {
+    // L’en-tête Bearer ne sert qu’à Swagger en développement ; en production seule la session par cookie est acceptée.
+    const extractors = configService.get('APP_STATUS') === 'DEV'
+      ? [fromSessionCookie, ExtractJwt.fromAuthHeaderAsBearerToken()]
+      : [fromSessionCookie];
     super({
-      jwtFromRequest: ExtractJwt.fromExtractors([
-        ExtractJwt.fromAuthHeaderAsBearerToken(),
-        cookieExtractor,
-      ]),
+      jwtFromRequest: ExtractJwt.fromExtractors(extractors),
       ignoreExpiration: false,
       secretOrKey: String(configService.get('JWT_SECRET')),
     });
