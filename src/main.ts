@@ -9,6 +9,8 @@ import * as bodyParser from 'body-parser';
 import * as fs from 'fs';
 import { join } from 'path';
 import { AppExceptionFilter } from './common/filters/http-exception.filter';
+import { csrfMiddleware } from './common/csrf.middleware';
+import cookieParser = require('cookie-parser');
 
 async function bootstrap() {
   const jwtSecret = process.env.JWT_SECRET;
@@ -21,6 +23,11 @@ async function bootstrap() {
   });
 
   const app = await NestFactory.create(AppModule, { logger: ['error', 'warn', 'log'] });
+  const http = app.getHttpAdapter().getInstance();
+  http.disable('x-powered-by');
+  http.set('trust proxy', 1);
+  app.use(cookieParser());
+  app.use(csrfMiddleware);
   const isDev = process.env.APP_STATUS === 'DEV';
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
 
@@ -48,6 +55,17 @@ async function bootstrap() {
       noSniff: true,
       referrerPolicy: { policy: 'no-referrer' },
       crossOriginResourcePolicy: { policy: 'cross-origin' },
+      hsts: isDev ? false : { maxAge: 15552000, includeSubDomains: true },
+      contentSecurityPolicy: isDev
+        ? false
+        : {
+            directives: {
+              defaultSrc: ["'none'"],
+              frameAncestors: ["'none'"],
+              baseUri: ["'none'"],
+              formAction: ["'none'"],
+            },
+          },
     }),
   );
 
@@ -67,7 +85,7 @@ async function bootstrap() {
 
   if (isDev) {
     const config = new DocumentBuilder()
-      .setTitle('JEUNESSE-APP API')
+      .setTitle('API Jeunesse')
       .setDescription('API pour la gestion des associations de jeunesse')
       .setVersion('1.0')
       .addBearerAuth(

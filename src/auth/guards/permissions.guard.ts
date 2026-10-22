@@ -41,12 +41,12 @@ export class PermissionsGuard implements CanActivate {
       },
     });
 
-    if (!userWithPermissions.activated) {
-      throw new UnauthorizedException("Vous n'êtes pas autorisé à accéder à la plateforme, Compte déactivé !");
-    }
-
     if (!userWithPermissions) {
       throw new ForbiddenException('Utilisateur non trouvé');
+    }
+
+    if (!userWithPermissions.activated) {
+      throw new UnauthorizedException("Vous n'êtes pas autorisé à accéder à la plateforme, Compte déactivé !");
     }
 
     const userPermissions = userWithPermissions.role.permissions.map(

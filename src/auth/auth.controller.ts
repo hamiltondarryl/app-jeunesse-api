@@ -1,4 +1,7 @@
-import { Controller, Get, Post, Body, Patch, HttpCode, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, HttpCode, HttpStatus, UseGuards, Req, Res } from '@nestjs/common';
+import { Response } from 'express';
+import { clearAuthCookies, setAuthCookies } from './auth-cookie';
+import { createCsrfToken } from '../common/csrf.middleware';
 import { AuthService } from './auth.service';
 import { LoginAdminDto } from './dto/login-admin.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -20,8 +23,10 @@ export class AuthController {
     @Throttle({ default: { limit: 5, ttl: 60000 } })
     @HttpCode(HttpStatus.OK)
     @Post('login-admin')
-    async login(@Body() loginAdminDto: LoginAdminDto) {
-        return await this.authService.loginAdmin(loginAdminDto);
+    async login(@Body() loginAdminDto: LoginAdminDto, @Res({ passthrough: true }) res: Response) {
+        const result = await this.authService.loginAdmin(loginAdminDto);
+        setAuthCookies(res, result.accessToken, createCsrfToken());
+        return { user: result.user };
     }
 
   @ApiOperation({ summary: "Demander un code de réinitialisation de mot de passe" })
@@ -47,9 +52,16 @@ export class AuthController {
     @Permissions('ACCESS_APP') // La permission requise
     @HttpCode(HttpStatus.OK)
     @Post('change-password')
-    async changePassword(@Body() changePassDto: ChangePassDto, @Req() req) {
-      const user = req.user;
-        return await this.authService.changePassword(changePassDto, user.id);
+    async changePassword(
+      @Body() changePassDto: ChangePassDto,
+      @Req() req,
+      @Res({ passthrough: true }) res: Response,
+    ) {
+      const result = await this.authService.changePassword(changePassDto, req.user.id);
+      if (result.accessToken) {
+        setAuthCookies(res, result.accessToken, createCsrfToken());
+      }
+      return { success: true };
     }
 
   @ApiOperation({ summary: "Profil de l'utilisateur connecté" })
@@ -72,7 +84,9 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @HttpCode(HttpStatus.OK)
     @Post('logout')
-    logout(@Req() req) {
-      return this.authService.logout(req.user.id);
+    async logout(@Req() req, @Res({ passthrough: true }) res: Response) {
+      const result = await this.authService.logout(req.user.id);
+      clearAuthCookies(res);
+      return result;
     }
 }
