@@ -2,7 +2,7 @@ import { PrismaClient } from '../../src/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { seedReferentiels } from './referentiels';
 
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 
 const adapter = new PrismaPg({
   connectionString: String(process.env.DATABASE_URL),

@@ -7,7 +7,7 @@ import { Request } from 'express';
 import * as process from 'process';
 import * as dotenv from 'dotenv';
 import { SESSION_COOKIE } from './auth-cookie';
-dotenv.config();
+dotenv.config({ quiet: true });
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {

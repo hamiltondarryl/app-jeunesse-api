@@ -1,11 +1,16 @@
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { AppExceptionFilter } from './http-exception.filter';
 
 describe('AppExceptionFilter', () => {
   const previous = process.env.APP_STATUS;
 
+  beforeEach(() => {
+    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+  });
+
   afterEach(() => {
     process.env.APP_STATUS = previous;
+    jest.restoreAllMocks();
   });
 
   function capture(exception: unknown) {
