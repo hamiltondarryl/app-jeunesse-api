@@ -6,6 +6,8 @@ import { CreateOrganisationDto } from './dto/create-organisation.dto';
 import { ResponsableDto } from './dto/responsable.dto';
 import { toPublicOrganisation, toPublicOrganisationList } from './organisation.mapper';
 import { MailService } from 'src/mail/mail.service';
+import { ActivityLogService } from 'src/activity-log/activity-log.service';
+import { ActionType } from 'src/generated/prisma/client';
 
 export type OfficerRole = 'responsable' | 'secretaireGeneral' | 'tresorier';
 export type DocumentKey =
@@ -22,6 +24,7 @@ export class OrganisationService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly mailService: MailService,
+    private readonly activityLogService: ActivityLogService,
   ) { }
 
   async create(createOrganisationDto: CreateOrganisationDto, files: any) {
@@ -59,42 +62,6 @@ export class OrganisationService {
         ]);
         throw new ConflictException('Une organisation avec ce nom ou ce sigle existe déjà');
       }
-
-      // Vérifier si le responsable existe déjà (par email)
-   /*   if (createOrganisationDto.responsable.email) {
-        const existingResponsable = await this.prismaService.responsable.findFirst({
-          where: { email: createOrganisationDto.responsable.email },
-        });
-
-        if (existingResponsable) {
-          await this.cleanupFiles([pieceIdentiteResponsablePath, pieceIdentiteSecretaireGeneralPath, pieceIdentiteTresorierPath, recepiceProvisoirOuDefinitifPath]);
-          throw new ConflictException('Un responsable avec cet email existe déjà');
-        }
-      }
-      
-      if (createOrganisationDto.secretaireGeneral.email) {
-        const existingSecretaireGeneral = await this.prismaService.responsable.findFirst({
-          where: { email: createOrganisationDto.secretaireGeneral.email },
-        });
-
-        if (existingSecretaireGeneral) {
-          await this.cleanupFiles([ pieceIdentiteResponsablePath, pieceIdentiteSecretaireGeneralPath, pieceIdentiteTresorierPath, recepiceProvisoirOuDefinitifPath]);
-          throw new ConflictException('Un secrétaire général avec cet email existe déjà');
-        }
-      }
-
-      if (createOrganisationDto.tresorier.email) {
-        const existingTresorier = await this.prismaService.responsable.findFirst({
-          where: { email: createOrganisationDto.tresorier.email },
-        });
-
-        if (existingTresorier) {
-          await this.cleanupFiles([pieceIdentiteResponsablePath, pieceIdentiteSecretaireGeneralPath, pieceIdentiteTresorierPath, recepiceProvisoirOuDefinitifPath]);
-          throw new ConflictException('Un trésorier avec cet email existe déjà');
-        }
-      }
-*/
-
 
       // Convertir les types si nécessaire
       const processedData = {
@@ -173,6 +140,12 @@ export class OrganisationService {
         return organisation;
       }).then(async (organisation) => {
         void this.mailService.sendInscriptionReceived(organisation);
+        await this.activityLogService.create(
+          ActionType.ORGANISATION_CREATED,
+          `Inscription déposée pour « ${organisation.nom} »`,
+          null,
+          { organisationId: organisation.id },
+        );
         return organisation;
       });
     } catch (error) {
@@ -224,47 +197,62 @@ export class OrganisationService {
     }
   }
 
-  private buildSearchWhere(activated: string, searchQuery: string) {
+  private buildSearchWhere(
+    searchQuery: string,
+    options: { activated?: string; validated?: string; publicView?: boolean } = {},
+  ) {
     const query = (searchQuery || '').trim();
-    return {
-      activated: activated === 'true',
-      ...(query
-        ? {
-            OR: [
-              { nom: { contains: query, mode: 'insensitive' as Prisma.QueryMode } },
-              { sigle: { contains: query, mode: 'insensitive' as Prisma.QueryMode } },
-              { commune: { contains: query, mode: 'insensitive' as Prisma.QueryMode } },
-              { but: { contains: query, mode: 'insensitive' as Prisma.QueryMode } },
-              { type: { contains: query, mode: 'insensitive' as Prisma.QueryMode } },
-              { adresse: { contains: query, mode: 'insensitive' as Prisma.QueryMode } },
-              { responsable: { nom: { contains: query, mode: 'insensitive' as Prisma.QueryMode } } },
-              { domaines: { some: { nom: { contains: query, mode: 'insensitive' as Prisma.QueryMode } } } },
-              { departements: { some: { nom: { contains: query, mode: 'insensitive' as Prisma.QueryMode } } } },
-              {
-                departements: {
-                  some: {
-                    province: { nom: { contains: query, mode: 'insensitive' as Prisma.QueryMode } },
-                  },
-                },
-              },
-            ],
-          }
-        : {}),
-    };
+    const where: Prisma.OrganisationWhereInput = {};
+
+    if (options.publicView) {
+      where.activated = true;
+    } else if (options.validated === 'true' || options.validated === 'false') {
+      where.validated = options.validated === 'true';
+    } else if (options.activated === 'true' || options.activated === 'false') {
+      where.activated = options.activated === 'true';
+    }
+
+    if (query) {
+      where.OR = [
+        { nom: { contains: query, mode: 'insensitive' as Prisma.QueryMode } },
+        { sigle: { contains: query, mode: 'insensitive' as Prisma.QueryMode } },
+        { commune: { contains: query, mode: 'insensitive' as Prisma.QueryMode } },
+        { but: { contains: query, mode: 'insensitive' as Prisma.QueryMode } },
+        { type: { contains: query, mode: 'insensitive' as Prisma.QueryMode } },
+        { adresse: { contains: query, mode: 'insensitive' as Prisma.QueryMode } },
+        { responsable: { nom: { contains: query, mode: 'insensitive' as Prisma.QueryMode } } },
+        { domaines: { some: { nom: { contains: query, mode: 'insensitive' as Prisma.QueryMode } } } },
+        { departements: { some: { nom: { contains: query, mode: 'insensitive' as Prisma.QueryMode } } } },
+        {
+          departements: {
+            some: {
+              province: { nom: { contains: query, mode: 'insensitive' as Prisma.QueryMode } },
+            },
+          },
+        },
+      ];
+    }
+
+    return where;
   }
 
   async search(
     page: number = 1,
     limit: number = 10,
-    activated: string = 'true',
+    activated?: string,
     searchQuery: string = '',
     publicView = false,
+    validated?: string,
   ) {
     try {
       const safePage = Number.isFinite(page) && page > 0 ? page : 1;
       const safeLimit = Number.isFinite(limit) && limit > 0 ? Math.min(limit, 50) : 10;
       const skip = (safePage - 1) * safeLimit;
-      const where = this.buildSearchWhere(publicView ? 'true' : activated, searchQuery);
+      const where = this.buildSearchWhere(searchQuery, {
+        publicView,
+        activated: publicView ? 'true' : activated,
+        validated: publicView ? undefined : validated,
+      });
 
       const [items, total] = await Promise.all([
         this.prismaService.organisation.findMany({
@@ -420,7 +408,7 @@ export class OrganisationService {
 
   // Remplacez la méthode update par celle-ci :
 
-async update(id: string, updateOrganisationDto: UpdateOrganisationDto) {
+async update(id: string, updateOrganisationDto: UpdateOrganisationDto, actorId?: string) {
   try {
     // Vérifier si l'organisation existe
     const existingOrganisation = await this.prismaService.organisation.findUnique({
@@ -502,7 +490,14 @@ async update(id: string, updateOrganisationDto: UpdateOrganisationDto) {
         });
       }
 
-      return this.getById(id);
+      const result = await this.getById(id);
+      await this.activityLogService.create(
+        ActionType.ORGANISATION_UPDATED,
+        `Dossier de « ${result.nom} » mis à jour`,
+        actorId,
+        { organisationId: id },
+      );
+      return result;
     });
   } catch (error) {
     this.logger.error('Erreur lors de la mise à jour');
@@ -546,13 +541,33 @@ async update(id: string, updateOrganisationDto: UpdateOrganisationDto) {
   }
 }
 
-  async remove(id: string) {
+  async remove(id: string, actorId?: string) {
     try {
-      const organisation = await this.findOne(id);
-
-      await this.prismaService.organisation.delete({
+      const organisation = await this.prismaService.organisation.findUnique({
         where: { id },
+        select: {
+          nom: true,
+          responsableId: true,
+          secretaireGeneralId: true,
+          tresorierId: true,
+        },
       });
+      if (!organisation) {
+        throw new NotFoundException('Organisation non trouvée');
+      }
+
+      await this.activityLogService.create(
+        ActionType.OTHER,
+        `Association « ${organisation.nom} » supprimée`,
+        actorId,
+      );
+
+      await this.prismaService.organisation.delete({ where: { id } });
+      await this.deleteOrphanOfficers([
+        organisation.responsableId,
+        organisation.secretaireGeneralId,
+        organisation.tresorierId,
+      ]);
 
       return { message: 'Organisation supprimée avec succès' };
     } catch (error) {
@@ -563,40 +578,129 @@ async update(id: string, updateOrganisationDto: UpdateOrganisationDto) {
     }
   }
 
-  async activeOrganisation(id: string, activated?: boolean) {
-    try {
-      const organisation = await this.prismaService.organisation.findUnique({
-        where: { id },
+  private async deleteOrphanOfficers(ids: Array<string | null | undefined>) {
+    const uniqueIds = [...new Set(ids.filter(Boolean))];
+    for (const officerId of uniqueIds) {
+      const stillLinked = await this.prismaService.organisation.count({
+        where: {
+          OR: [
+            { responsableId: officerId },
+            { secretaireGeneralId: officerId },
+            { tresorierId: officerId },
+          ],
+        },
       });
-
-      if (!organisation) {
-        throw new NotFoundException('Organisation non trouvée');
+      if (!stillLinked) {
+        await this.prismaService.responsable.delete({ where: { id: officerId } }).catch(() => undefined);
       }
-
-      const nextStatus = typeof activated === 'boolean' ? activated : !organisation.activated;
-
-      const updatedOrganisation = await this.prismaService.organisation.update({
-        where: { id },
-        data: { activated: nextStatus },
-        include: this.getIncludeRelations(),
-      });
-
-      if (nextStatus) {
-        void this.mailService.sendAssociationValidated(updatedOrganisation);
-      }
-
-      return {
-        ...updatedOrganisation,
-        message: nextStatus
-          ? 'Association validée et désormais visible au public'
-          : 'Association retirée de la carte publique',
-      };
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new InternalServerErrorException("Erreur lors de la validation de l'organisation");
     }
+  }
+
+  async getActivity(id: string) {
+    await this.getById(id);
+    return this.activityLogService.organisationLog(id);
+  }
+
+  async validateOrganisation(id: string, actorId: string, commentaire?: string) {
+    const organisation = await this.prismaService.organisation.findUnique({ where: { id } });
+    if (!organisation) {
+      throw new NotFoundException('Organisation non trouvée');
+    }
+    if (organisation.validated) {
+      throw new BadRequestException('Cette inscription a déjà été validée');
+    }
+
+    const updatedOrganisation = await this.prismaService.organisation.update({
+      where: { id },
+      data: { validated: true, activated: true },
+      include: this.getIncludeRelations(),
+    });
+
+    await this.activityLogService.create(
+      ActionType.ORGANISATION_VALIDATED,
+      `Inscription de « ${updatedOrganisation.nom} » validée et publiée`,
+      actorId,
+      { organisationId: id, comment: commentaire },
+    );
+    void this.mailService.sendAssociationValidated(updatedOrganisation);
+
+    return {
+      ...updatedOrganisation,
+      message: 'Association validée et désormais visible au public',
+    };
+  }
+
+  async publishOrganisation(id: string, actorId: string, commentaire: string) {
+    const organisation = await this.requireOrganisation(id);
+    if (!organisation.validated) {
+      throw new BadRequestException('Validez d’abord l’inscription avant de la rendre visible');
+    }
+    if (organisation.activated) {
+      throw new BadRequestException('Cette association est déjà visible');
+    }
+
+    const updatedOrganisation = await this.prismaService.organisation.update({
+      where: { id },
+      data: { activated: true },
+      include: this.getIncludeRelations(),
+    });
+
+    await this.activityLogService.create(
+      ActionType.ORGANISATION_PUBLISHED,
+      `« ${updatedOrganisation.nom} » remise en visibilité publique`,
+      actorId,
+      { organisationId: id, comment: commentaire },
+    );
+
+    return {
+      ...updatedOrganisation,
+      message: 'Association désormais visible au public',
+    };
+  }
+
+  async unpublishOrganisation(id: string, actorId: string, commentaire: string) {
+    const organisation = await this.requireOrganisation(id);
+    if (!organisation.activated) {
+      throw new BadRequestException('Cette association n’est déjà plus visible');
+    }
+
+    const updatedOrganisation = await this.prismaService.organisation.update({
+      where: { id },
+      data: { activated: false },
+      include: this.getIncludeRelations(),
+    });
+
+    await this.activityLogService.create(
+      ActionType.ORGANISATION_UNPUBLISHED,
+      `« ${updatedOrganisation.nom} » retirée de la visibilité publique`,
+      actorId,
+      { organisationId: id, comment: commentaire },
+    );
+
+    return {
+      ...updatedOrganisation,
+      message: 'Association retirée de la carte publique',
+    };
+  }
+
+  async activeOrganisation(id: string, activated?: boolean, actorId?: string, commentaire?: string) {
+    const organisation = await this.requireOrganisation(id);
+    const nextStatus = typeof activated === 'boolean' ? activated : !organisation.activated;
+    if (!organisation.validated && nextStatus) {
+      return this.validateOrganisation(id, actorId || '', commentaire);
+    }
+    if (nextStatus) {
+      return this.publishOrganisation(id, actorId || '', commentaire || 'Remise en visibilité');
+    }
+    return this.unpublishOrganisation(id, actorId || '', commentaire || 'Retrait de visibilité');
+  }
+
+  private async requireOrganisation(id: string) {
+    const organisation = await this.prismaService.organisation.findUnique({ where: { id } });
+    if (!organisation) {
+      throw new NotFoundException('Organisation non trouvée');
+    }
+    return organisation;
   }
 
   private getIncludeRelations() {
@@ -1029,7 +1133,7 @@ async getOrganisationsCountByProvince(domaineId?: string) {
     return Number.isNaN(parsed) ? undefined : parsed;
   }
 
-  async updateOfficer(id: string, role: OfficerRole, person: ResponsableDto) {
+  async updateOfficer(id: string, role: OfficerRole, person: ResponsableDto, actorId?: string) {
     const organisation = await this.prismaService.organisation.findUnique({
       where: { id },
       include: this.getIncludeRelations(),
@@ -1045,7 +1149,19 @@ async getOrganisationsCountByProvince(domaineId?: string) {
       await this.upsertOfficer(tx, id, existingId, relationField, person);
     });
 
-    return this.getById(id);
+    const labels = {
+      responsable: 'président',
+      secretaireGeneral: 'secrétaire général',
+      tresorier: 'trésorier',
+    };
+    const result = await this.getById(id);
+    await this.activityLogService.create(
+      ActionType.ORGANISATION_OFFICER_UPDATED,
+      `Bureau mis à jour (${labels[role]}) pour « ${result.nom} »`,
+      actorId,
+      { organisationId: id },
+    );
+    return result;
   }
 
   async updateDocuments(
@@ -1058,6 +1174,7 @@ async getOrganisationsCountByProvince(domaineId?: string) {
       pieceIdentiteTresorier?: Express.Multer.File[];
     },
     remove: DocumentKey[] = [],
+    actorId?: string,
   ) {
     const organisation = await this.prismaService.organisation.findUnique({
       where: { id },
@@ -1121,7 +1238,14 @@ async getOrganisationsCountByProvince(domaineId?: string) {
     );
 
     await this.cleanupFiles(toDelete);
-    return this.getById(id);
+    const result = await this.getById(id);
+    await this.activityLogService.create(
+      ActionType.ORGANISATION_DOCUMENTS_UPDATED,
+      `Documents mis à jour pour « ${result.nom} »`,
+      actorId,
+      { organisationId: id },
+    );
+    return result;
   }
 
   private officerRelationField(role: OfficerRole): 'responsableId' | 'secretaireGeneralId' | 'tresorierId' {

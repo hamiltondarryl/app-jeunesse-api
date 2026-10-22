@@ -13,15 +13,32 @@ datasource db {
   provider = "postgresql"
 }
 
+enum LogScope {
+  METIER
+  APPLICATION
+  SYSTEME
+}
+
 enum ActionType {
-  LOGIN // Connexion utilisateur
-  LOGOUT // Déconnexion utilisateur
-  OTHER // Autres actions
-  PASSWORD_RESET // Réinitialisation du mot de passe
-  PASSWORD_CHANGE // Modification du mot de passe
-  FORGOT_PASSWORD // Demande de réinitialisation du mot de passe
-  ACCOUNT_CREATED // Creation du compte 
-  ACCOUNT_ACTIVATION // Actived du compte
+  LOGIN
+  LOGOUT
+  OTHER
+  PASSWORD_RESET
+  PASSWORD_CHANGE
+  FORGOT_PASSWORD
+  ACCOUNT_CREATED
+  ACCOUNT_ACTIVATION
+  ORGANISATION_CREATED
+  ORGANISATION_UPDATED
+  ORGANISATION_VALIDATED
+  ORGANISATION_PUBLISHED
+  ORGANISATION_UNPUBLISHED
+  ORGANISATION_OFFICER_UPDATED
+  ORGANISATION_DOCUMENTS_UPDATED
+  SYSTEM_BOOT
+  SYSTEM_MAIL_SENT
+  SYSTEM_MAIL_FAILED
+  SYSTEM_ERROR
 }
 
 enum TypeOSC {
@@ -113,10 +130,16 @@ model Organisation {
   secretaireGeneralId          String?
   tresorierId                  String?
   domaines                     Domaine[]     @relation("OrganisationDomaines")
+  validated                    Boolean       @default(false)
   activated                    Boolean       @default(false)
   updatedAt                    DateTime      @updatedAt
   createdAt                    DateTime      @default(now())
   departements                 Departement[] @relation("OrganisationDepartements")
+  activityLogs                 ActivityLog[]
+
+  @@index([validated, activated])
+  @@index([createdAt])
+  @@index([nom])
 }
 
 model Responsable {
@@ -147,12 +170,19 @@ model Domaine {
 }
 
 model ActivityLog {
-  id          String     @id @default(uuid()) // ID unique
-  action      ActionType // Type d'action
-  description String? // Détails sur l'action
-  userId      String? // ID de l'utilisateur ayant effectué l'action
-  user        User?      @relation(fields: [userId], references: [id], onDelete: Restrict) // Relation avec le modèle User
-  createdAt   DateTime   @default(now()) // Date de l'action
+  id             String        @id @default(uuid())
+  scope          LogScope      @default(APPLICATION)
+  action         ActionType
+  description    String?
+  comment        String?
+  userId         String?
+  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organisationId String?
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime      @default(now())
+
+  @@index([scope, createdAt])
+  @@index([organisationId, createdAt])
 }
 
 model Province {

@@ -82,26 +82,29 @@ export class UserService {
   }
 
   // Recherche des utilisateurs
-  async search(page: number = 1, limit: number = 10, searchQuery: string = '') {
+  async search(page: number = 1, limit: number = 10, searchQuery: string = '', roleCode?: string) {
     try {
-      const where = searchQuery
-        ? {
-          OR: [
-            {
-              username: {
-                contains: searchQuery,
-                mode: Prisma.QueryMode.insensitive
-              },
-            },
-            {
-              email: {
-                contains: searchQuery,
-                mode: Prisma.QueryMode.insensitive
-              }
-            } // 'insensitive' pour rendre la recherche insensible à la casse
-          ],
-        }
-        : {}; // Si pas de query, on ne filtre rien
+      const where: Prisma.UserWhereInput = {
+        ...(roleCode ? { role: { code: roleCode } } : {}),
+        ...(searchQuery
+          ? {
+              OR: [
+                {
+                  username: {
+                    contains: searchQuery,
+                    mode: Prisma.QueryMode.insensitive,
+                  },
+                },
+                {
+                  email: {
+                    contains: searchQuery,
+                    mode: Prisma.QueryMode.insensitive,
+                  },
+                },
+              ],
+            }
+          : {}),
+      };
 
       const users = await this.prismaService.user.findMany({
         where,  // Filtre selon la recherche

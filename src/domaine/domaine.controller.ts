@@ -6,6 +6,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Permissions } from 'src/auth/guards/permissions.decorator';
 import { PermissionsGuard } from 'src/auth/guards/permissions.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { Public } from 'src/auth/guards/public.decorator';
 
 @ApiTags("Gestion des domaines")
 @Controller('domaine')
@@ -22,6 +23,7 @@ export class DomaineController {
   }
 
   @ApiOperation({ summary: "Lister les domaines" })
+  @Public()
   @HttpCode(HttpStatus.OK)
   @Get()
   async findAll() {
@@ -29,6 +31,8 @@ export class DomaineController {
   }
 
   @ApiOperation({ summary: "Rechercher des domaines " })
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('LIST_DOMAINE')
   @HttpCode(HttpStatus.OK)
   @Get('search')
   async search( @Query('searchQuery') searchQuery: string,

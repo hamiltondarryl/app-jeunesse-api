@@ -9,6 +9,8 @@ import * as bodyParser from 'body-parser';
 import * as fs from 'fs';
 import { join } from 'path';
 import { AppExceptionFilter } from './common/filters/http-exception.filter';
+import { uploadsRoot } from './common/uploads';
+import { resolvePublicUrls } from './common/public-urls';
 
 async function bootstrap() {
   const jwtSecret = process.env.JWT_SECRET;
@@ -16,13 +18,17 @@ async function bootstrap() {
     throw new Error('JWT_SECRET doit être défini avec au moins 16 caractères.');
   }
 
-  fs.mkdirSync(join(process.cwd(), 'uploads', 'organisations', 'public'), {
+  fs.mkdirSync(join(uploadsRoot(), 'organisations', 'public'), {
     recursive: true,
   });
 
   const app = await NestFactory.create(AppModule, { logger: ['error', 'warn', 'log'] });
   const isDev = process.env.APP_STATUS === 'DEV';
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
+  const publicUrls = resolvePublicUrls();
+  const frontendUrl = publicUrls.frontendUrl;
+  const corsOrigins = isDev
+    ? [frontendUrl, 'http://localhost:4200', 'http://127.0.0.1:4200']
+    : publicUrls.corsOrigins;
 
   app.setGlobalPrefix('api');
   app.useGlobalFilters(new AppExceptionFilter());
@@ -41,6 +47,7 @@ async function bootstrap() {
         }),
     }),
   );
+  app.getHttpAdapter().getInstance().set('trust proxy', 1);
   app.use(
     helmet({
       hidePoweredBy: true,
@@ -48,18 +55,15 @@ async function bootstrap() {
       noSniff: true,
       referrerPolicy: { policy: 'no-referrer' },
       crossOriginResourcePolicy: { policy: 'cross-origin' },
+      contentSecurityPolicy: false,
+      hsts: isDev
+        ? false
+        : { maxAge: 15552000, includeSubDomains: true, preload: false },
     }),
   );
 
   app.enableCors({
-    origin: isDev
-      ? [frontendUrl, 'http://localhost:4200', 'http://127.0.0.1:4200']
-      : [
-          'http://pamj-dgjase.com',
-          'https://pamj-dgjase.com',
-          'http://www.pamj-dgjase.com',
-          'https://www.pamj-dgjase.com',
-        ],
+    origin: corsOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
     credentials: true,
@@ -83,7 +87,7 @@ async function bootstrap() {
   app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
   const port = Number(process.env.PORT) || 4000;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   const url = await app.getUrl();
   app.get(ConfigService).set('APP_URL', url);
   new Logger('Bootstrap').log(`API disponible sur ${url}`);

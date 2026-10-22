@@ -1345,6 +1345,7 @@ export const OrganisationScalarFieldEnum = {
   responsableId: 'responsableId',
   secretaireGeneralId: 'secretaireGeneralId',
   tresorierId: 'tresorierId',
+  validated: 'validated',
   activated: 'activated',
   updatedAt: 'updatedAt',
   createdAt: 'createdAt'
@@ -1383,9 +1384,12 @@ export type DomaineScalarFieldEnum = (typeof DomaineScalarFieldEnum)[keyof typeo
 
 export const ActivityLogScalarFieldEnum = {
   id: 'id',
+  scope: 'scope',
   action: 'action',
   description: 'description',
+  comment: 'comment',
   userId: 'userId',
+  organisationId: 'organisationId',
   createdAt: 'createdAt'
 } as const
 
@@ -1518,6 +1522,20 @@ export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, '
  * Reference to a field of type 'Float[]'
  */
 export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+/**
+ * Reference to a field of type 'LogScope'
+ */
+export type EnumLogScopeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LogScope'>
+    
+
+
+/**
+ * Reference to a field of type 'LogScope[]'
+ */
+export type ListEnumLogScopeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LogScope[]'>
     
 
 

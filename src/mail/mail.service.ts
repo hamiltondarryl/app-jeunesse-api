@@ -1,5 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
+import { ActivityLogService } from 'src/activity-log/activity-log.service';
+import { ActionType } from 'src/generated/prisma/client';
+import { resolvePublicUrls } from 'src/common/public-urls';
 
 type OfficerLike = {
   nom?: string | null;
@@ -20,7 +23,10 @@ type OrganisationMailPayload = {
 export class MailService {
   private readonly logger = new Logger(MailService.name);
 
-  constructor(private readonly mailerService: MailerService) {}
+  constructor(
+    private readonly mailerService: MailerService,
+    private readonly activityLogService: ActivityLogService,
+  ) {}
 
   async sendInscriptionReceived(organisation: OrganisationMailPayload) {
     const recipients = this.collectEmails(organisation);
@@ -57,7 +63,7 @@ export class MailService {
       return;
     }
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
+    const frontendUrl = resolvePublicUrls().frontendUrl;
 
     await this.send({
       to: recipients,
@@ -76,6 +82,27 @@ export class MailService {
         ctaLabel: 'Voir la plateforme',
         ctaUrl: frontendUrl,
         footer: 'Merci de contribuer au recensement des associations de jeunesse.',
+      }),
+    });
+  }
+
+  async sendPasswordReset(email: string, username: string | null, code: string) {
+    const frontendUrl = resolvePublicUrls().frontendUrl;
+    await this.send({
+      to: [email],
+      subject: 'Code de réinitialisation — Plateforme Jeunesse',
+      html: this.layout({
+        eyebrow: 'Sécurité du compte',
+        title: 'Réinitialisation du mot de passe',
+        intro: `Bonjour ${username || 'Madame, Monsieur'},`,
+        body: 'Utilisez ce code temporaire comme mot de passe sur l’écran de connexion, puis choisissez immédiatement un nouveau mot de passe. Il expire dans 30 minutes.',
+        details: [
+          ['Code', code],
+          ['Validité', '30 minutes'],
+        ],
+        ctaLabel: 'Ouvrir la connexion',
+        ctaUrl: `${frontendUrl}/authentification`,
+        footer: 'Si vous n’êtes pas à l’origine de cette demande, ignorez cet e-mail.',
       }),
     });
   }
@@ -99,9 +126,17 @@ export class MailService {
         html: options.html,
         text: options.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(),
       });
+      void this.activityLogService.create(
+        ActionType.SYSTEM_MAIL_SENT,
+        `E-mail envoyé : ${options.subject} → ${options.to.join(', ')}`,
+      );
     } catch (error) {
       this.logger.error(`Échec d’envoi d’e-mail : ${options.subject}`);
       this.logger.error(error);
+      void this.activityLogService.create(
+        ActionType.SYSTEM_MAIL_FAILED,
+        `Échec d’e-mail : ${options.subject}`,
+      );
     }
   }
 

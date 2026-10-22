@@ -41,6 +41,13 @@ lerna-debug.log*
 .env.test.local
 .env.production.local
 .env.local
+.env.deploy
+
+# Uploads runtime
+/uploads
+
+# Liens publics locaux (garder l’exemple versionné)
+/config/app.yaml
 
 # temp directory
 .temp

@@ -1,36 +1,87 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpCode, HttpStatus, Req } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, HttpCode, HttpStatus, Req } from '@nestjs/common';
 import { ActivityLogService } from './activity-log.service';
-import { CreateActivityLogDto } from './dto/create-activity-log.dto';
-import { UpdateActivityLogDto } from './dto/update-activity-log.dto';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Permissions } from 'src/auth/guards/permissions.decorator';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from 'src/auth/guards/permissions.guard';
+import { LogScope } from 'src/generated/prisma/client';
 
-@ApiTags("Log des activités des utilisateurs")
+@ApiTags('Journaux d’activité')
 @Controller('log')
 export class ActivityLogController {
   constructor(private readonly activityLogService: ActivityLogService) {}
 
-  @ApiOperation({ summary: "Les log d'un utilisateur"})
-  @ApiBearerAuth("Bearer")
+  @ApiOperation({ summary: 'Activités applicatives (connexions, comptes, validations…)' })
+  @ApiBearerAuth('Bearer')
   @UseGuards(JwtAuthGuard, PermissionsGuard)
-  @Permissions('LOG') // La permission requise
+  @Permissions('LOG')
+  @HttpCode(HttpStatus.OK)
+  @ApiQuery({ name: 'debut', required: false })
+  @ApiQuery({ name: 'fin', required: false })
+  @ApiQuery({ name: 'q', required: false })
+  @Get('application')
+  application(
+    @Query('debut') debut?: string,
+    @Query('fin') fin?: string,
+    @Query('q') q?: string,
+    @Query('roleCode') roleCode?: string,
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
+  ) {
+    return this.activityLogService.search({
+      scopes: [LogScope.APPLICATION, LogScope.METIER],
+      debut,
+      fin,
+      q,
+      roleCode,
+      page: Number(page),
+      limit: Number(limit),
+    });
+  }
+
+  @ApiOperation({ summary: 'Journaux système, filtrables par période' })
+  @ApiBearerAuth('Bearer')
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('LOG_SYSTEME')
+  @HttpCode(HttpStatus.OK)
+  @Get('systeme')
+  systeme(
+    @Query('debut') debut?: string,
+    @Query('fin') fin?: string,
+    @Query('q') q?: string,
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
+  ) {
+    return this.activityLogService.search({
+      scopes: [LogScope.SYSTEME],
+      debut,
+      fin,
+      q,
+      page: Number(page),
+      limit: Number(limit),
+    });
+  }
+
+  @ApiOperation({ summary: 'Activités applicatives de l’utilisateur connecté' })
+  @ApiBearerAuth('Bearer')
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('LOG')
   @HttpCode(HttpStatus.OK)
   @Get('log-for-user')
   userLog(@Req() req) {
-    const user = req.user;
-    return this.activityLogService.userLog(user.id);
+    return this.activityLogService.userLog(req.user.id);
   }
 
-  @ApiOperation({ summary: "Liste de tout les logs"})
-  @ApiBearerAuth("Bearer")
+  @ApiOperation({ summary: 'Ancien endpoint : activités applicatives' })
+  @ApiBearerAuth('Bearer')
   @UseGuards(JwtAuthGuard, PermissionsGuard)
-  @Permissions('LOG') // La permission requise
+  @Permissions('LOG')
   @HttpCode(HttpStatus.OK)
   @Get('log-for-all')
-  allLog(@Req() req) {
-    const user = req.user;
-    return this.activityLogService.allLog();
+  allLog() {
+    return this.activityLogService.search({
+      scopes: [LogScope.APPLICATION, LogScope.METIER],
+      limit: 50,
+    });
   }
 }

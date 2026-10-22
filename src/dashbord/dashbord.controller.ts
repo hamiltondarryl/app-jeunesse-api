@@ -1,4 +1,4 @@
-import { Controller, Get, Header, HttpCode, HttpStatus, Query, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Header, HttpCode, HttpStatus, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { DashbordService } from './dashbord.service';
 import { Permissions } from 'src/auth/guards/permissions.decorator';
 import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
@@ -18,21 +18,22 @@ export class DashbordController {
   @Permissions('ACCESS_APP')
   @HttpCode(HttpStatus.OK)
   @Get()
-  findAll(@Query('debut') debut?: string, @Query('fin') fin?: string) {
-    return this.dashbordService.findAll(debut, fin);
+  findAll(@Req() req, @Query('debut') debut?: string, @Query('fin') fin?: string) {
+    return this.dashbordService.forUser(req.user.id, debut, fin);
   }
 
   @ApiOperation({ summary: 'Exporter le tableau de bord en Excel' })
   @UseGuards(JwtAuthGuard, PermissionsGuard)
-  @Permissions('ACCESS_APP')
+  @Permissions('DASHBORD_EXPORT')
   @Get('export/excel')
   @Header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
   async exportExcel(
+    @Req() req,
     @Query('debut') debut: string,
     @Query('fin') fin: string,
     @Res() res: Response,
   ) {
-    const buffer = await this.dashbordService.exportExcel(debut, fin);
+    const buffer = await this.dashbordService.exportExcel(req.user.id, debut, fin);
     const filename = `tableau-de-bord-jeunesse.xlsx`;
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(buffer);

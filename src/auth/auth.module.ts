@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -7,10 +8,21 @@ import { JwtStrategy } from './jwt.strategy';
 import { ActivityLogService } from 'src/activity-log/activity-log.service';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { PassportModule } from '@nestjs/passport';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Module({
-  controllers: [AuthController, ],
-  providers: [AuthService, PrismaService, JwtService, JwtStrategy, ActivityLogService],
+  controllers: [AuthController],
+  providers: [
+    AuthService,
+    PrismaService,
+    JwtService,
+    JwtStrategy,
+    ActivityLogService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
   imports: [
     PrismaModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
@@ -21,6 +33,6 @@ import { PassportModule } from '@nestjs/passport';
         signOptions: { expiresIn: '8h' },
       }),
     }),
-  ]
+  ],
 })
 export class AuthModule {}

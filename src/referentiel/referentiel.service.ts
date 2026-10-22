@@ -120,4 +120,13 @@ export class ReferentielService {
 
     return { message: 'Référentiel modifié avec succès' };
   }
+
+  async remove(id: string) {
+    const current = await this.prisma.referentiel.findUnique({ where: { id } });
+    if (!current) {
+      throw new NotFoundException('Référentiel introuvable');
+    }
+    await this.prisma.referentiel.delete({ where: { id } });
+    return { message: 'Référentiel supprimé avec succès' };
+  }
 }

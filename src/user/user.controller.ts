@@ -40,8 +40,9 @@ export class UserController {
   @Get('search')
   async search(@Query('searchQuery') searchQuery: string,
     @Query('page', ParseIntPipe) page: number = 1,
-    @Query('limit', ParseIntPipe) limit: number = 10,) {
-    return await this.userService.search(page, limit, searchQuery);
+    @Query('limit', ParseIntPipe) limit: number = 10,
+    @Query('roleCode') roleCode?: string) {
+    return await this.userService.search(page, limit, searchQuery, roleCode);
   }
 
   @ApiOperation({ summary: "Afficher un utilisateur" })

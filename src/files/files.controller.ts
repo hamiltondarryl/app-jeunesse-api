@@ -14,6 +14,7 @@ import { extname, normalize, resolve } from 'path';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Permissions } from 'src/auth/guards/permissions.decorator';
 import { PermissionsGuard } from 'src/auth/guards/permissions.guard';
+import { isPathInsideUploads, uploadsRoot } from 'src/common/uploads';
 
 @ApiTags('Fichiers protégés')
 @ApiBearerAuth('access-token')
@@ -28,10 +29,8 @@ export class FilesController {
       throw new NotFoundException('Fichier introuvable');
     }
 
-    const uploadsRoot = resolve(process.cwd(), 'uploads');
-    const requested = resolve(process.cwd(), normalize(filePath));
-
-    if (!requested.startsWith(uploadsRoot)) {
+    const requested = resolve(uploadsRoot(), normalize(filePath.replace(/^(\.\/)?uploads[\\/]/, '')));
+    if (!isPathInsideUploads(requested)) {
       throw new ForbiddenException('Accès au fichier refusé');
     }
 
@@ -44,7 +43,7 @@ export class FilesController {
       throw new NotFoundException('Fichier introuvable');
     }
 
-    res.setHeader('Content-Disposition', 'inline');
+    res.setHeader('Content-Disposition', 'attachment');
     return res.sendFile(requested);
   }
 }

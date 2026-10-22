@@ -1,5 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ActionType } from 'src/generated/prisma/client';
 import * as XLSX from 'xlsx';
 
 type Periode = { debut?: Date; fin?: Date };
@@ -7,6 +8,121 @@ type Periode = { debut?: Date; fin?: Date };
 @Injectable()
 export class DashbordService {
   constructor(private prismaService: PrismaService) {}
+
+  private static readonly ASSOCIATION_WIDGETS = [
+    'DASHBORD_STATS_ASSOCIATIONS',
+    'DASHBORD_STATS_EFFECTIFS',
+    'DASHBORD_STATS_FINANCEMENT',
+    'DASHBORD_GRAPHE_STATUT',
+    'DASHBORD_GRAPHE_TYPE',
+    'DASHBORD_GRAPHE_SEXE',
+    'DASHBORD_GRAPHE_PUBLIC',
+    'DASHBORD_CARTES_PROVINCES',
+    'DASHBORD_EVOLUTION',
+    'DASHBORD_AIDE_DECISION',
+  ];
+
+  private static readonly WIDGET_FIELDS: Record<string, string[]> = {
+    DASHBORD_STATS_ASSOCIATIONS: [
+      'associationsPubliees',
+      'dossiersEnAttente',
+      'associationCountActivated',
+      'associationCountDeactivated',
+    ],
+    DASHBORD_STATS_EFFECTIFS: ['totalAdherents', 'totalHommes', 'totalFemmes', 'totalSalaries', 'totalBenevoles'],
+    DASHBORD_STATS_FINANCEMENT: ['cotisationMoyenne', 'associationsSansRib', 'associationsSansAgrement'],
+    DASHBORD_GRAPHE_STATUT: ['parStatut'],
+    DASHBORD_GRAPHE_TYPE: ['parType'],
+    DASHBORD_GRAPHE_SEXE: ['parSexe'],
+    DASHBORD_GRAPHE_PUBLIC: ['parPublicCible'],
+    DASHBORD_CARTES_PROVINCES: ['bullesProvince', 'parProvince', 'bullesDomaine', 'parDomaine'],
+    DASHBORD_EVOLUTION: ['inscriptionsParMois'],
+    DASHBORD_AIDE_DECISION: ['aidesDecision'],
+    DASHBORD_COMPTES: ['utilisateursActifs', 'utilisateursInactifs', 'userCount', 'parRole'],
+    DASHBORD_CONNEXIONS: ['connexionsPeriode', 'journauxSysteme', 'connexionsParJour', 'dernieresConnexions'],
+  };
+
+  async forUser(userId: string, debut?: string, fin?: string) {
+    const permissions = await this.permissionsOf(userId);
+    const [associations, plateforme] = await Promise.all([
+      this.hasAny(permissions, DashbordService.ASSOCIATION_WIDGETS)
+        ? this.findAll(debut, fin)
+        : Promise.resolve({}),
+      this.hasAny(permissions, ['DASHBORD_COMPTES', 'DASHBORD_CONNEXIONS'])
+        ? this.findAdmin(debut, fin)
+        : Promise.resolve({}),
+    ]);
+    return this.pickVisible({ ...associations, ...plateforme }, permissions);
+  }
+
+  async findAdmin(debut?: string, fin?: string) {
+    const periode = this.parsePeriode(debut, fin);
+    const createdAt = this.createdAtFilter(periode);
+
+    const [users, roles, connexions, logsSysteme] = await Promise.all([
+      this.prismaService.user.findMany({
+        include: { role: { select: { name: true, code: true } } },
+      }),
+      this.prismaService.role.findMany({
+        orderBy: { name: 'asc' },
+        select: { name: true, code: true, _count: { select: { users: true } } },
+      }),
+      this.prismaService.activityLog.findMany({
+        where: {
+          action: ActionType.LOGIN,
+          ...(createdAt ? { createdAt } : {}),
+        },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            select: {
+              username: true,
+              email: true,
+              role: { select: { name: true, code: true } },
+            },
+          },
+        },
+      }),
+      this.prismaService.activityLog.count({
+        where: {
+          scope: 'SYSTEME',
+          ...(createdAt ? { createdAt } : {}),
+        },
+      }),
+    ]);
+
+    const actifs = users.filter((item) => item.activated);
+    const inactifs = users.filter((item) => !item.activated);
+    const parRole = roles.map((role) => ({
+      nom: role.name,
+      code: role.code,
+      total: role._count.users,
+    }));
+    const connexionsParJour = this.aggregateMonths(
+      connexions.map((item) => ({ createdAt: item.createdAt })),
+      periode,
+    );
+
+    return {
+      periode: {
+        debut: (periode.debut || this.firstDate(connexions))?.toISOString().slice(0, 10) || null,
+        fin: (periode.fin || new Date()).toISOString().slice(0, 10),
+      },
+      utilisateursActifs: actifs.length,
+      utilisateursInactifs: inactifs.length,
+      userCount: users.length,
+      connexionsPeriode: connexions.length,
+      journauxSysteme: logsSysteme,
+      parRole,
+      connexionsParJour,
+      dernieresConnexions: connexions.slice(0, 8).map((item) => ({
+        date: item.createdAt,
+        nom: item.user?.username || item.user?.email || 'Inconnu',
+        role: item.user?.role?.name || '—',
+        roleCode: item.user?.role?.code || '',
+      })),
+    };
+  }
 
   async findAll(debut?: string, fin?: string) {
     try {
@@ -34,7 +150,8 @@ export class DashbordService {
 
       const labels = this.buildLabels(referentiels);
       const publiees = organisations.filter((item) => item.activated);
-      const enAttente = organisations.filter((item) => !item.activated);
+      const enAttente = organisations.filter((item) => !item.validated);
+      const retirees = organisations.filter((item) => item.validated && !item.activated);
 
       const totalAdherents = this.sum(publiees, 'adherents');
       const totalHommes = this.sum(publiees, 'hommes');
@@ -61,6 +178,7 @@ export class DashbordService {
       const parStatut = [
         { nom: 'Publiées', total: publiees.length },
         { nom: 'En attente de validation', total: enAttente.length },
+        { nom: 'Retirées de la publication', total: retirees.length },
       ];
       const parSexe = [
         { nom: 'Hommes', total: totalHommes },
@@ -127,43 +245,76 @@ export class DashbordService {
     }
   }
 
-  async exportExcel(debut?: string, fin?: string): Promise<Buffer> {
-    const data = await this.findAll(debut, fin);
+  async exportExcel(userId: string, debut?: string, fin?: string): Promise<Buffer> {
+    const data = await this.forUser(userId, debut, fin);
     const workbook = XLSX.utils.book_new();
+    const indicateurs: Array<[string, string | number]> = [['Indicateur', 'Valeur']];
+    if (data.associationsPubliees != null) indicateurs.push(['Associations publiées', data.associationsPubliees]);
+    if (data.dossiersEnAttente != null) indicateurs.push(['Inscriptions en attente', data.dossiersEnAttente]);
+    if (data.totalAdherents != null) indicateurs.push(['Adhérents', data.totalAdherents]);
+    if (data.cotisationMoyenne != null) indicateurs.push(['Cotisation moyenne (FCFA)', data.cotisationMoyenne]);
+    if (data.utilisateursActifs != null) indicateurs.push(['Utilisateurs actifs', data.utilisateursActifs]);
+    if (data.connexionsPeriode != null) indicateurs.push(['Connexions', data.connexionsPeriode]);
 
     XLSX.utils.book_append_sheet(
       workbook,
       XLSX.utils.aoa_to_sheet([
-        ['Tableau de bord — Associations de jeunesse'],
-        ['Période', `${data.periode.debut || 'Début'} → ${data.periode.fin}`],
+        ['Tableau de bord'],
+        ['Période', `${data.periode?.debut || 'Début'} → ${data.periode?.fin || ''}`],
         [],
-        ['Indicateur', 'Valeur'],
-        ['Associations publiées', data.associationsPubliees],
-        ['Inscriptions en attente', data.dossiersEnAttente],
-        ['Adhérents', data.totalAdherents],
-        ['Hommes', data.totalHommes],
-        ['Femmes', data.totalFemmes],
-        ['Salariés', data.totalSalaries],
-        ['Bénévoles', data.totalBenevoles],
-        ['Cotisation moyenne (FCFA)', data.cotisationMoyenne],
-        ['Associations sans RIB', data.associationsSansRib],
-        ['Associations sans agrément technique', data.associationsSansAgrement],
+        ...indicateurs,
       ]),
       'Synthèse',
     );
 
-    this.appendSheet(workbook, 'Provinces', ['Province', 'Associations', 'Adhérents', 'Cotisation moyenne'], data.parProvince.map((item) => [item.nom, item.total, item.adherents, item.cotisation]));
-    this.appendSheet(workbook, 'Types', ['Type', 'Total'], data.parType.map((item) => [item.nom || item.type, item.total]));
-    this.appendSheet(workbook, 'Domaines', ['Domaine', 'Associations', 'Adhérents'], data.parDomaine.map((item) => [item.nom, item.total, item.adherents]));
-    this.appendSheet(workbook, 'Public cible', ['Public', 'Total'], data.parPublicCible.map((item) => [item.nom, item.total]));
-    this.appendSheet(
-      workbook,
-      'Aide à la décision',
-      ['Volet', 'Priorité', 'Indicateur', 'Valeur', 'Recommandation'],
-      data.aidesDecision.map((item) => [item.volet, item.priorite, item.titre, item.valeur, item.recommandation]),
-    );
+    if (data.parProvince) {
+      this.appendSheet(workbook, 'Provinces', ['Province', 'Associations', 'Adhérents', 'Cotisation moyenne'], data.parProvince.map((item) => [item.nom, item.total, item.adherents, item.cotisation]));
+    }
+    if (data.parType) {
+      this.appendSheet(workbook, 'Types', ['Type', 'Total'], data.parType.map((item) => [item.nom || item.type, item.total]));
+    }
+    if (data.parRole) {
+      this.appendSheet(workbook, 'Rôles', ['Rôle', 'Utilisateurs'], data.parRole.map((item) => [item.nom, item.total]));
+    }
+    if (data.aidesDecision) {
+      this.appendSheet(
+        workbook,
+        'Aide à la décision',
+        ['Volet', 'Priorité', 'Indicateur', 'Valeur', 'Recommandation'],
+        data.aidesDecision.map((item) => [item.volet, item.priorite, item.titre, item.valeur, item.recommandation]),
+      );
+    }
 
     return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
+  }
+
+  private async permissionsOf(userId: string): Promise<string[]> {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      include: { role: { include: { permissions: { select: { name: true } } } } },
+    });
+    return user?.role?.permissions?.map((item) => item.name) || [];
+  }
+
+  private hasAny(permissions: string[], required: string[]): boolean {
+    return required.some((name) => permissions.includes(name));
+  }
+
+  private pickVisible(payload: Record<string, any>, permissions: string[]) {
+    const visible: Record<string, any> = {
+      periode: payload.periode || { debut: null, fin: new Date().toISOString().slice(0, 10) },
+    };
+    for (const [permission, fields] of Object.entries(DashbordService.WIDGET_FIELDS)) {
+      if (!permissions.includes(permission)) {
+        continue;
+      }
+      for (const field of fields) {
+        if (payload[field] !== undefined) {
+          visible[field] = payload[field];
+        }
+      }
+    }
+    return visible;
   }
 
   private appendSheet(workbook: XLSX.WorkBook, name: string, headers: string[], rows: Array<Array<string | number>>) {

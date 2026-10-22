@@ -1,0 +1,18 @@
+# Fichier unique des liens publics (front, API, CORS).
+# Copier vers config/app.yaml (local) et /etc/jeunesse/app.yaml (VPS).
+# Ne jamais y mettre de mots de passe (root, Jenkins, JWT, base).
+
+# Nom de domaine SANS https://  — tout le reste est dérivé si les champs ci-dessous sont vides.
+domain: pamj-dgjase.com
+
+scheme: https
+apiPath: /api
+includeWww: true
+
+# Surcharges optionnelles (laisser vide pour dériver depuis domain)
+frontendUrl: ""
+apiUrl: ""
+corsOrigins: ""
+
+# Expéditeur affiché (pas le mot de passe SMTP)
+mailFrom: "Plateforme Jeunesse <dgjasegabon@gmail.com>"

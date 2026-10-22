@@ -1,0 +1,60 @@
+name: jeunesse-api
+
+services:
+  api:
+    image: jeunesse-api:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      APP_STATUS: PROD
+      PORT: 4000
+      UPLOADS_DIR: /app/uploads
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${API_BIND:-127.0.0.1:4000}:4000"
+    volumes:
+      - uploads_data:/app/uploads
+      - ./config/app.yaml:/app/config/app.yaml:ro
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+      - /home/node:size=16m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 256
+    mem_limit: 768m
+    cpus: 1.0
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 45s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - jeunesse
+
+volumes:
+  uploads_data:
+
+networks:
+  jeunesse:
+    name: jeunesse

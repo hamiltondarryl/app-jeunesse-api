@@ -164,7 +164,19 @@ async function main() {
     { name: 'ACCESS_APP', description: "Accès à l'application" },
     { name: 'LOG', description: 'Historique des actions utilisateur' },
     { name: 'ACCESS_APP_MOBILE', description: "Accès à l'application mobile" },
-    { name: 'DASHBORD_ADMIN', description: 'Accès au tableau de bord' },
+    { name: 'DASHBORD_STATS_ASSOCIATIONS', description: 'Tableau de bord : indicateurs associations' },
+    { name: 'DASHBORD_STATS_EFFECTIFS', description: 'Tableau de bord : effectifs' },
+    { name: 'DASHBORD_STATS_FINANCEMENT', description: 'Tableau de bord : financement' },
+    { name: 'DASHBORD_GRAPHE_STATUT', description: 'Tableau de bord : graphe des statuts' },
+    { name: 'DASHBORD_GRAPHE_TYPE', description: 'Tableau de bord : graphe des types' },
+    { name: 'DASHBORD_GRAPHE_SEXE', description: 'Tableau de bord : graphe par sexe' },
+    { name: 'DASHBORD_GRAPHE_PUBLIC', description: 'Tableau de bord : graphe public cible' },
+    { name: 'DASHBORD_CARTES_PROVINCES', description: 'Tableau de bord : ballonnets par province' },
+    { name: 'DASHBORD_EVOLUTION', description: 'Tableau de bord : évolution des dossiers' },
+    { name: 'DASHBORD_AIDE_DECISION', description: 'Tableau de bord : aide à la décision' },
+    { name: 'DASHBORD_COMPTES', description: 'Tableau de bord : comptes utilisateurs' },
+    { name: 'DASHBORD_CONNEXIONS', description: 'Tableau de bord : connexions' },
+    { name: 'DASHBORD_EXPORT', description: 'Exporter le tableau de bord' },
     { name: 'CREATE_USER', description: 'Créer un utilisateur' },
     { name: 'READ_USER', description: 'Afficher un utilisateur' },
     { name: 'LIST_USER', description: 'Lister les utilisateurs' },
@@ -186,14 +198,19 @@ async function main() {
     { name: 'LIST_ORGANISATION', description: 'Lister les organisations' },
     { name: 'UPDATE_ORGANISATION', description: 'Mettre à jour une organisation' },
     { name: 'DELETE_ORGANISATION', description: 'Supprimer une organisation' },
+    { name: 'VALIDATE_ORGANISATION', description: 'Valider une inscription d’association' },
+    { name: 'PUBLISH_ORGANISATION', description: 'Rendre une association visible au public' },
+    { name: 'UNPUBLISH_ORGANISATION', description: 'Retirer une association de la visibilité publique' },
+    { name: 'LOG_SYSTEME', description: 'Consulter les journaux système' },
     { name: 'CREATE_DOMAINE', description: 'Créer un domaine' },
     { name: 'READ_DOMAINE', description: 'Lire un domaine' },
     { name: 'LIST_DOMAINE', description: 'Lister les domaines' },
     { name: 'UPDATE_DOMAINE', description: 'Mettre à jour un domaine' },
     { name: 'DELETE_DOMAINE', description: 'Supprimer un domaine' },
-    { name: 'LIST_REFERENTIEL', description: 'Lister les référentiels' },
+    { name: 'LIST_REFERENTIEL', description: 'Administrer les nomenclatures (types, publics, etc.)' },
     { name: 'CREATE_REFERENTIEL', description: 'Créer un référentiel' },
     { name: 'UPDATE_REFERENTIEL', description: 'Mettre à jour un référentiel' },
+    { name: 'DELETE_REFERENTIEL', description: 'Supprimer un référentiel' },
     { name: 'CREATE_PROVINCE', description: 'Créer une province' },
     { name: 'READ_PROVINCE', description: 'Lire une province' },
     { name: 'LIST_PROVINCE', description: 'Lister les provinces' },
@@ -217,23 +234,50 @@ async function main() {
       code: 'ADMIN',
       description: 'Administrateur de la plateforme',
       permissions: {
-        connect: Object.values(permissions).map((permission) => ({ id: permission.id })),
+        connect: [
+          'ACCESS_APP',
+          'LOG',
+          'LOG_SYSTEME',
+          'DASHBORD_COMPTES',
+          'DASHBORD_CONNEXIONS',
+          'DASHBORD_EXPORT',
+          'LIST_REFERENTIEL',
+          'CREATE_REFERENTIEL',
+          'UPDATE_REFERENTIEL',
+          'DELETE_REFERENTIEL',
+          'CREATE_USER',
+          'READ_USER',
+          'LIST_USER',
+          'UPDATE_USER',
+          'DELETE_USER',
+          'ACTIVATED_USER',
+          'CREATE_PERMISSION',
+          'READ_PERMISSION',
+          'LIST_PERMISSION',
+          'UPDATE_PERMISSION',
+          'DELETE_PERMISSION',
+          'CREATE_ROLE',
+          'READ_ROLE',
+          'LIST_ROLE',
+          'UPDATE_ROLE',
+          'DELETE_ROLE',
+        ].map((name) => ({ id: permissions[name].id })),
       },
     },
   });
 
-  const gestionnaireRole = await prisma.role.create({
+  const instructeurRole = await prisma.role.create({
     data: {
-      name: 'Gestionnaire',
-      code: 'GESTION',
-      description: 'Valide les inscriptions et administre les associations',
+      name: 'Instructeur',
+      code: 'INSTRUCTEUR',
+      description: 'Instruit les dossiers sans pouvoir les valider',
       permissions: {
         connect: [
           'ACCESS_APP',
-          'LOG',
-          'DASHBORD_ADMIN',
-          'LIST_USER',
-          'READ_USER',
+          'DASHBORD_STATS_ASSOCIATIONS',
+          'DASHBORD_GRAPHE_STATUT',
+          'DASHBORD_EVOLUTION',
+          'DASHBORD_EXPORT',
           'LIST_ORGANISATION',
           'READ_ORGANISATION',
           'UPDATE_ORGANISATION',
@@ -243,6 +287,58 @@ async function main() {
           'READ_PROVINCE',
           'LIST_DEPARTEMENT',
           'READ_DEPARTEMENT',
+        ].map((name) => ({ id: permissions[name].id })),
+      },
+    },
+  });
+
+  const validateurRole = await prisma.role.create({
+    data: {
+      name: 'Validateur',
+      code: 'VALIDATEUR',
+      description: 'Valide les inscriptions et gère la visibilité publique',
+      permissions: {
+        connect: [
+          'ACCESS_APP',
+          'DASHBORD_STATS_ASSOCIATIONS',
+          'DASHBORD_STATS_EFFECTIFS',
+          'DASHBORD_STATS_FINANCEMENT',
+          'DASHBORD_GRAPHE_STATUT',
+          'DASHBORD_GRAPHE_TYPE',
+          'DASHBORD_EVOLUTION',
+          'DASHBORD_AIDE_DECISION',
+          'DASHBORD_EXPORT',
+          'LIST_ORGANISATION',
+          'READ_ORGANISATION',
+          'UPDATE_ORGANISATION',
+          'VALIDATE_ORGANISATION',
+          'PUBLISH_ORGANISATION',
+          'UNPUBLISH_ORGANISATION',
+          'LIST_DOMAINE',
+          'READ_DOMAINE',
+          'LIST_PROVINCE',
+          'READ_PROVINCE',
+          'LIST_DEPARTEMENT',
+          'READ_DEPARTEMENT',
+        ].map((name) => ({ id: permissions[name].id })),
+      },
+    },
+  });
+
+  const directeurRole = await prisma.role.create({
+    data: {
+      name: 'Directeur général',
+      code: 'DIRECTEUR',
+      description: 'Pilotage et aide à la décision',
+      permissions: {
+        connect: [
+          'ACCESS_APP',
+          'DASHBORD_STATS_ASSOCIATIONS',
+          'DASHBORD_STATS_FINANCEMENT',
+          'DASHBORD_GRAPHE_STATUT',
+          'DASHBORD_CARTES_PROVINCES',
+          'DASHBORD_AIDE_DECISION',
+          'DASHBORD_EXPORT',
         ].map((name) => ({ id: permissions[name].id })),
       },
     },
@@ -264,12 +360,34 @@ async function main() {
 
   await prisma.user.create({
     data: {
-      email: 'gestionnaire@jeunesse.ga',
-      username: 'Gestionnaire',
+      email: 'instructeur@jeunesse.ga',
+      username: 'Instructeur',
       activated: true,
       passwordDefault: true,
       password: hashedPassword,
-      role: { connect: { id: gestionnaireRole.id } },
+      role: { connect: { id: instructeurRole.id } },
+    },
+  });
+
+  await prisma.user.create({
+    data: {
+      email: 'validateur@jeunesse.ga',
+      username: 'Validateur',
+      activated: true,
+      passwordDefault: true,
+      password: hashedPassword,
+      role: { connect: { id: validateurRole.id } },
+    },
+  });
+
+  await prisma.user.create({
+    data: {
+      email: 'dg@jeunesse.ga',
+      username: 'Directeur général',
+      activated: true,
+      passwordDefault: true,
+      password: hashedPassword,
+      role: { connect: { id: directeurRole.id } },
     },
   });
 

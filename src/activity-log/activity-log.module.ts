@@ -7,5 +7,6 @@ import { JwtService } from '@nestjs/jwt';
 @Module({
   controllers: [ActivityLogController],
   providers: [ActivityLogService, PrismaService, JwtService],
+  exports: [ActivityLogService],
 })
 export class ActivityLogModule {}

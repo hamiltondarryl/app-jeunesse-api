@@ -158,6 +158,7 @@ export const OrganisationScalarFieldEnum = {
   responsableId: 'responsableId',
   secretaireGeneralId: 'secretaireGeneralId',
   tresorierId: 'tresorierId',
+  validated: 'validated',
   activated: 'activated',
   updatedAt: 'updatedAt',
   createdAt: 'createdAt'
@@ -196,9 +197,12 @@ export type DomaineScalarFieldEnum = (typeof DomaineScalarFieldEnum)[keyof typeo
 
 export const ActivityLogScalarFieldEnum = {
   id: 'id',
+  scope: 'scope',
   action: 'action',
   description: 'description',
+  comment: 'comment',
   userId: 'userId',
+  organisationId: 'organisationId',
   createdAt: 'createdAt'
 } as const
 

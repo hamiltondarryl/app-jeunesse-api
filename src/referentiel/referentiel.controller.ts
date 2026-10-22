@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -15,6 +16,7 @@ import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Permissions } from 'src/auth/guards/permissions.decorator';
 import { PermissionsGuard } from 'src/auth/guards/permissions.guard';
+import { Public } from 'src/auth/guards/public.decorator';
 import { CreateReferentielDto } from './dto/create-referentiel.dto';
 import { UpdateReferentielDto } from './dto/update-referentiel.dto';
 import { ReferentielService } from './referentiel.service';
@@ -24,16 +26,17 @@ import { ReferentielService } from './referentiel.service';
 export class ReferentielController {
   constructor(private readonly referentielService: ReferentielService) {}
 
-  @ApiOperation({ summary: 'Lister les valeurs de référentiel actives' })
+  @ApiOperation({ summary: 'Lister les valeurs actives (formulaire public et dossiers)' })
   @ApiQuery({ name: 'categorie', required: false })
+  @Public()
   @Get()
   findAll(@Query('categorie') categorie?: string) {
     return this.referentielService.findActifs(categorie);
   }
 
-  @ApiOperation({ summary: 'Rechercher les référentiels (administration)' })
+  @ApiOperation({ summary: 'Administrer les référentiels' })
   @UseGuards(JwtAuthGuard, PermissionsGuard)
-  @Permissions('LIST_DOMAINE')
+  @Permissions('LIST_REFERENTIEL')
   @HttpCode(HttpStatus.OK)
   @Get('admin')
   search(
@@ -47,7 +50,7 @@ export class ReferentielController {
 
   @ApiOperation({ summary: 'Créer une valeur de référentiel' })
   @UseGuards(JwtAuthGuard, PermissionsGuard)
-  @Permissions('CREATE_DOMAINE')
+  @Permissions('CREATE_REFERENTIEL')
   @HttpCode(HttpStatus.CREATED)
   @Post()
   create(@Body() dto: CreateReferentielDto) {
@@ -56,10 +59,19 @@ export class ReferentielController {
 
   @ApiOperation({ summary: 'Modifier une valeur de référentiel' })
   @UseGuards(JwtAuthGuard, PermissionsGuard)
-  @Permissions('UPDATE_DOMAINE')
+  @Permissions('UPDATE_REFERENTIEL')
   @HttpCode(HttpStatus.OK)
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: UpdateReferentielDto) {
     return this.referentielService.update(id, dto);
+  }
+
+  @ApiOperation({ summary: 'Supprimer une valeur de référentiel' })
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('DELETE_REFERENTIEL')
+  @HttpCode(HttpStatus.OK)
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.referentielService.remove(id);
   }
 }

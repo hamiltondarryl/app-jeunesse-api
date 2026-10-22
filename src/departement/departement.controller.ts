@@ -7,6 +7,7 @@ import { SearchDepartmentDto } from './dto/pagination.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from 'src/auth/guards/permissions.guard';
 import { Permissions } from 'src/auth/guards/permissions.decorator';
+import { Public } from 'src/auth/guards/public.decorator';
 
 
 @ApiTags("Gestion des départements")
@@ -23,18 +24,22 @@ export class DepartementController {
   }
 
   @ApiOperation({ summary: "Récuperation des départements" })
+  @Public()
   @Get()
   async findAll() {
     return await this.departementService.findAll();
   }
 
   @ApiOperation({ summary: "Récuperation des départements avec filtre" })
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('LIST_DEPARTEMENT')
   @Get('search')
   async search(@Query() searchDepartmentDto: SearchDepartmentDto) {
     return await this.departementService.search(searchDepartmentDto);
   }
 
   @ApiOperation({ summary: "Récuperation d'un département" })
+  @Public()
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return await this.departementService.findOne(id);

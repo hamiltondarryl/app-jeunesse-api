@@ -19,6 +19,7 @@ import { ProvinceModule } from './province/province.module';
 import { diskStorage } from 'multer';
 import { MulterModule } from '@nestjs/platform-express';
 import { extname } from 'path';
+import { uploadsRoot } from './common/uploads';
 import { DashbordModule } from './dashbord/dashbord.module';
 import { FilesModule } from './files/files.module';
 import { ReferentielModule } from './referentiel/referentiel.module';
@@ -37,7 +38,7 @@ import { MailModule } from './mail/mail.module';
     }),
     MulterModule.register({
       storage: diskStorage({
-        destination: './uploads',
+        destination: uploadsRoot(),
         filename: (req, file, callback) => {
           const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
           callback(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`);

@@ -75,6 +75,7 @@ export type OrganisationMinAggregateOutputType = {
   responsableId: string | null
   secretaireGeneralId: string | null
   tresorierId: string | null
+  validated: boolean | null
   activated: boolean | null
   updatedAt: Date | null
   createdAt: Date | null
@@ -107,6 +108,7 @@ export type OrganisationMaxAggregateOutputType = {
   responsableId: string | null
   secretaireGeneralId: string | null
   tresorierId: string | null
+  validated: boolean | null
   activated: boolean | null
   updatedAt: Date | null
   createdAt: Date | null
@@ -139,6 +141,7 @@ export type OrganisationCountAggregateOutputType = {
   responsableId: number
   secretaireGeneralId: number
   tresorierId: number
+  validated: number
   activated: number
   updatedAt: number
   createdAt: number
@@ -195,6 +198,7 @@ export type OrganisationMinAggregateInputType = {
   responsableId?: true
   secretaireGeneralId?: true
   tresorierId?: true
+  validated?: true
   activated?: true
   updatedAt?: true
   createdAt?: true
@@ -227,6 +231,7 @@ export type OrganisationMaxAggregateInputType = {
   responsableId?: true
   secretaireGeneralId?: true
   tresorierId?: true
+  validated?: true
   activated?: true
   updatedAt?: true
   createdAt?: true
@@ -259,6 +264,7 @@ export type OrganisationCountAggregateInputType = {
   responsableId?: true
   secretaireGeneralId?: true
   tresorierId?: true
+  validated?: true
   activated?: true
   updatedAt?: true
   createdAt?: true
@@ -378,6 +384,7 @@ export type OrganisationGroupByOutputType = {
   responsableId: string | null
   secretaireGeneralId: string | null
   tresorierId: string | null
+  validated: boolean
   activated: boolean
   updatedAt: Date
   createdAt: Date
@@ -433,6 +440,7 @@ export type OrganisationWhereInput = {
   responsableId?: Prisma.StringNullableFilter<"Organisation"> | string | null
   secretaireGeneralId?: Prisma.StringNullableFilter<"Organisation"> | string | null
   tresorierId?: Prisma.StringNullableFilter<"Organisation"> | string | null
+  validated?: Prisma.BoolFilter<"Organisation"> | boolean
   activated?: Prisma.BoolFilter<"Organisation"> | boolean
   updatedAt?: Prisma.DateTimeFilter<"Organisation"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"Organisation"> | Date | string
@@ -441,6 +449,7 @@ export type OrganisationWhereInput = {
   tresorier?: Prisma.XOR<Prisma.ResponsableNullableScalarRelationFilter, Prisma.ResponsableWhereInput> | null
   domaines?: Prisma.DomaineListRelationFilter
   departements?: Prisma.DepartementListRelationFilter
+  activityLogs?: Prisma.ActivityLogListRelationFilter
 }
 
 export type OrganisationOrderByWithRelationInput = {
@@ -470,6 +479,7 @@ export type OrganisationOrderByWithRelationInput = {
   responsableId?: Prisma.SortOrderInput | Prisma.SortOrder
   secretaireGeneralId?: Prisma.SortOrderInput | Prisma.SortOrder
   tresorierId?: Prisma.SortOrderInput | Prisma.SortOrder
+  validated?: Prisma.SortOrder
   activated?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -478,6 +488,7 @@ export type OrganisationOrderByWithRelationInput = {
   tresorier?: Prisma.ResponsableOrderByWithRelationInput
   domaines?: Prisma.DomaineOrderByRelationAggregateInput
   departements?: Prisma.DepartementOrderByRelationAggregateInput
+  activityLogs?: Prisma.ActivityLogOrderByRelationAggregateInput
 }
 
 export type OrganisationWhereUniqueInput = Prisma.AtLeast<{
@@ -510,6 +521,7 @@ export type OrganisationWhereUniqueInput = Prisma.AtLeast<{
   responsableId?: Prisma.StringNullableFilter<"Organisation"> | string | null
   secretaireGeneralId?: Prisma.StringNullableFilter<"Organisation"> | string | null
   tresorierId?: Prisma.StringNullableFilter<"Organisation"> | string | null
+  validated?: Prisma.BoolFilter<"Organisation"> | boolean
   activated?: Prisma.BoolFilter<"Organisation"> | boolean
   updatedAt?: Prisma.DateTimeFilter<"Organisation"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"Organisation"> | Date | string
@@ -518,6 +530,7 @@ export type OrganisationWhereUniqueInput = Prisma.AtLeast<{
   tresorier?: Prisma.XOR<Prisma.ResponsableNullableScalarRelationFilter, Prisma.ResponsableWhereInput> | null
   domaines?: Prisma.DomaineListRelationFilter
   departements?: Prisma.DepartementListRelationFilter
+  activityLogs?: Prisma.ActivityLogListRelationFilter
 }, "id">
 
 export type OrganisationOrderByWithAggregationInput = {
@@ -547,6 +560,7 @@ export type OrganisationOrderByWithAggregationInput = {
   responsableId?: Prisma.SortOrderInput | Prisma.SortOrder
   secretaireGeneralId?: Prisma.SortOrderInput | Prisma.SortOrder
   tresorierId?: Prisma.SortOrderInput | Prisma.SortOrder
+  validated?: Prisma.SortOrder
   activated?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -587,6 +601,7 @@ export type OrganisationScalarWhereWithAggregatesInput = {
   responsableId?: Prisma.StringNullableWithAggregatesFilter<"Organisation"> | string | null
   secretaireGeneralId?: Prisma.StringNullableWithAggregatesFilter<"Organisation"> | string | null
   tresorierId?: Prisma.StringNullableWithAggregatesFilter<"Organisation"> | string | null
+  validated?: Prisma.BoolWithAggregatesFilter<"Organisation"> | boolean
   activated?: Prisma.BoolWithAggregatesFilter<"Organisation"> | boolean
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Organisation"> | Date | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Organisation"> | Date | string
@@ -616,6 +631,7 @@ export type OrganisationCreateInput = {
   partenaires?: string | null
   but?: string | null
   publicCible?: string | null
+  validated?: boolean
   activated?: boolean
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -624,6 +640,7 @@ export type OrganisationCreateInput = {
   tresorier?: Prisma.ResponsableCreateNestedOneWithoutOrganisationsInput
   domaines?: Prisma.DomaineCreateNestedManyWithoutOrganisationsInput
   departements?: Prisma.DepartementCreateNestedManyWithoutOrganisationsInput
+  activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateInput = {
@@ -653,11 +670,13 @@ export type OrganisationUncheckedCreateInput = {
   responsableId?: string | null
   secretaireGeneralId?: string | null
   tresorierId?: string | null
+  validated?: boolean
   activated?: boolean
   updatedAt?: Date | string
   createdAt?: Date | string
   domaines?: Prisma.DomaineUncheckedCreateNestedManyWithoutOrganisationsInput
   departements?: Prisma.DepartementUncheckedCreateNestedManyWithoutOrganisationsInput
+  activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationUpdateInput = {
@@ -684,6 +703,7 @@ export type OrganisationUpdateInput = {
   partenaires?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   but?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicCible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -692,6 +712,7 @@ export type OrganisationUpdateInput = {
   tresorier?: Prisma.ResponsableUpdateOneWithoutOrganisationsNestedInput
   domaines?: Prisma.DomaineUpdateManyWithoutOrganisationsNestedInput
   departements?: Prisma.DepartementUpdateManyWithoutOrganisationsNestedInput
+  activityLogs?: Prisma.ActivityLogUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateInput = {
@@ -721,11 +742,13 @@ export type OrganisationUncheckedUpdateInput = {
   responsableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secretaireGeneralId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tresorierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   domaines?: Prisma.DomaineUncheckedUpdateManyWithoutOrganisationsNestedInput
   departements?: Prisma.DepartementUncheckedUpdateManyWithoutOrganisationsNestedInput
+  activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateManyInput = {
@@ -755,6 +778,7 @@ export type OrganisationCreateManyInput = {
   responsableId?: string | null
   secretaireGeneralId?: string | null
   tresorierId?: string | null
+  validated?: boolean
   activated?: boolean
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -784,6 +808,7 @@ export type OrganisationUpdateManyMutationInput = {
   partenaires?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   but?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicCible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -816,6 +841,7 @@ export type OrganisationUncheckedUpdateManyInput = {
   responsableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secretaireGeneralId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tresorierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -848,6 +874,7 @@ export type OrganisationCountOrderByAggregateInput = {
   responsableId?: Prisma.SortOrder
   secretaireGeneralId?: Prisma.SortOrder
   tresorierId?: Prisma.SortOrder
+  validated?: Prisma.SortOrder
   activated?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -891,6 +918,7 @@ export type OrganisationMaxOrderByAggregateInput = {
   responsableId?: Prisma.SortOrder
   secretaireGeneralId?: Prisma.SortOrder
   tresorierId?: Prisma.SortOrder
+  validated?: Prisma.SortOrder
   activated?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -923,6 +951,7 @@ export type OrganisationMinOrderByAggregateInput = {
   responsableId?: Prisma.SortOrder
   secretaireGeneralId?: Prisma.SortOrder
   tresorierId?: Prisma.SortOrder
+  validated?: Prisma.SortOrder
   activated?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -947,6 +976,11 @@ export type OrganisationListRelationFilter = {
 
 export type OrganisationOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type OrganisationNullableScalarRelationFilter = {
+  is?: Prisma.OrganisationWhereInput | null
+  isNot?: Prisma.OrganisationWhereInput | null
 }
 
 export type NullableIntFieldUpdateOperationsInput = {
@@ -1129,6 +1163,22 @@ export type OrganisationUncheckedUpdateManyWithoutDomainesNestedInput = {
   deleteMany?: Prisma.OrganisationScalarWhereInput | Prisma.OrganisationScalarWhereInput[]
 }
 
+export type OrganisationCreateNestedOneWithoutActivityLogsInput = {
+  create?: Prisma.XOR<Prisma.OrganisationCreateWithoutActivityLogsInput, Prisma.OrganisationUncheckedCreateWithoutActivityLogsInput>
+  connectOrCreate?: Prisma.OrganisationCreateOrConnectWithoutActivityLogsInput
+  connect?: Prisma.OrganisationWhereUniqueInput
+}
+
+export type OrganisationUpdateOneWithoutActivityLogsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganisationCreateWithoutActivityLogsInput, Prisma.OrganisationUncheckedCreateWithoutActivityLogsInput>
+  connectOrCreate?: Prisma.OrganisationCreateOrConnectWithoutActivityLogsInput
+  upsert?: Prisma.OrganisationUpsertWithoutActivityLogsInput
+  disconnect?: Prisma.OrganisationWhereInput | boolean
+  delete?: Prisma.OrganisationWhereInput | boolean
+  connect?: Prisma.OrganisationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganisationUpdateToOneWithWhereWithoutActivityLogsInput, Prisma.OrganisationUpdateWithoutActivityLogsInput>, Prisma.OrganisationUncheckedUpdateWithoutActivityLogsInput>
+}
+
 export type OrganisationCreateNestedManyWithoutDepartementsInput = {
   create?: Prisma.XOR<Prisma.OrganisationCreateWithoutDepartementsInput, Prisma.OrganisationUncheckedCreateWithoutDepartementsInput> | Prisma.OrganisationCreateWithoutDepartementsInput[] | Prisma.OrganisationUncheckedCreateWithoutDepartementsInput[]
   connectOrCreate?: Prisma.OrganisationCreateOrConnectWithoutDepartementsInput | Prisma.OrganisationCreateOrConnectWithoutDepartementsInput[]
@@ -1191,6 +1241,7 @@ export type OrganisationCreateWithoutResponsableInput = {
   partenaires?: string | null
   but?: string | null
   publicCible?: string | null
+  validated?: boolean
   activated?: boolean
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -1198,6 +1249,7 @@ export type OrganisationCreateWithoutResponsableInput = {
   tresorier?: Prisma.ResponsableCreateNestedOneWithoutOrganisationsInput
   domaines?: Prisma.DomaineCreateNestedManyWithoutOrganisationsInput
   departements?: Prisma.DepartementCreateNestedManyWithoutOrganisationsInput
+  activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutResponsableInput = {
@@ -1226,11 +1278,13 @@ export type OrganisationUncheckedCreateWithoutResponsableInput = {
   publicCible?: string | null
   secretaireGeneralId?: string | null
   tresorierId?: string | null
+  validated?: boolean
   activated?: boolean
   updatedAt?: Date | string
   createdAt?: Date | string
   domaines?: Prisma.DomaineUncheckedCreateNestedManyWithoutOrganisationsInput
   departements?: Prisma.DepartementUncheckedCreateNestedManyWithoutOrganisationsInput
+  activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutResponsableInput = {
@@ -1267,6 +1321,7 @@ export type OrganisationCreateWithoutSecretaireGeneralInput = {
   partenaires?: string | null
   but?: string | null
   publicCible?: string | null
+  validated?: boolean
   activated?: boolean
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -1274,6 +1329,7 @@ export type OrganisationCreateWithoutSecretaireGeneralInput = {
   tresorier?: Prisma.ResponsableCreateNestedOneWithoutOrganisationsInput
   domaines?: Prisma.DomaineCreateNestedManyWithoutOrganisationsInput
   departements?: Prisma.DepartementCreateNestedManyWithoutOrganisationsInput
+  activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutSecretaireGeneralInput = {
@@ -1302,11 +1358,13 @@ export type OrganisationUncheckedCreateWithoutSecretaireGeneralInput = {
   publicCible?: string | null
   responsableId?: string | null
   tresorierId?: string | null
+  validated?: boolean
   activated?: boolean
   updatedAt?: Date | string
   createdAt?: Date | string
   domaines?: Prisma.DomaineUncheckedCreateNestedManyWithoutOrganisationsInput
   departements?: Prisma.DepartementUncheckedCreateNestedManyWithoutOrganisationsInput
+  activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutSecretaireGeneralInput = {
@@ -1343,6 +1401,7 @@ export type OrganisationCreateWithoutTresorierInput = {
   partenaires?: string | null
   but?: string | null
   publicCible?: string | null
+  validated?: boolean
   activated?: boolean
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -1350,6 +1409,7 @@ export type OrganisationCreateWithoutTresorierInput = {
   secretaireGeneral?: Prisma.ResponsableCreateNestedOneWithoutOrganisationsAsSecretaireGeneralInput
   domaines?: Prisma.DomaineCreateNestedManyWithoutOrganisationsInput
   departements?: Prisma.DepartementCreateNestedManyWithoutOrganisationsInput
+  activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutTresorierInput = {
@@ -1378,11 +1438,13 @@ export type OrganisationUncheckedCreateWithoutTresorierInput = {
   publicCible?: string | null
   responsableId?: string | null
   secretaireGeneralId?: string | null
+  validated?: boolean
   activated?: boolean
   updatedAt?: Date | string
   createdAt?: Date | string
   domaines?: Prisma.DomaineUncheckedCreateNestedManyWithoutOrganisationsInput
   departements?: Prisma.DepartementUncheckedCreateNestedManyWithoutOrganisationsInput
+  activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutTresorierInput = {
@@ -1441,6 +1503,7 @@ export type OrganisationScalarWhereInput = {
   responsableId?: Prisma.StringNullableFilter<"Organisation"> | string | null
   secretaireGeneralId?: Prisma.StringNullableFilter<"Organisation"> | string | null
   tresorierId?: Prisma.StringNullableFilter<"Organisation"> | string | null
+  validated?: Prisma.BoolFilter<"Organisation"> | boolean
   activated?: Prisma.BoolFilter<"Organisation"> | boolean
   updatedAt?: Prisma.DateTimeFilter<"Organisation"> | Date | string
   createdAt?: Prisma.DateTimeFilter<"Organisation"> | Date | string
@@ -1502,6 +1565,7 @@ export type OrganisationCreateWithoutDomainesInput = {
   partenaires?: string | null
   but?: string | null
   publicCible?: string | null
+  validated?: boolean
   activated?: boolean
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -1509,6 +1573,7 @@ export type OrganisationCreateWithoutDomainesInput = {
   secretaireGeneral?: Prisma.ResponsableCreateNestedOneWithoutOrganisationsAsSecretaireGeneralInput
   tresorier?: Prisma.ResponsableCreateNestedOneWithoutOrganisationsInput
   departements?: Prisma.DepartementCreateNestedManyWithoutOrganisationsInput
+  activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutDomainesInput = {
@@ -1538,10 +1603,12 @@ export type OrganisationUncheckedCreateWithoutDomainesInput = {
   responsableId?: string | null
   secretaireGeneralId?: string | null
   tresorierId?: string | null
+  validated?: boolean
   activated?: boolean
   updatedAt?: Date | string
   createdAt?: Date | string
   departements?: Prisma.DepartementUncheckedCreateNestedManyWithoutOrganisationsInput
+  activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutDomainesInput = {
@@ -1563,6 +1630,162 @@ export type OrganisationUpdateWithWhereUniqueWithoutDomainesInput = {
 export type OrganisationUpdateManyWithWhereWithoutDomainesInput = {
   where: Prisma.OrganisationScalarWhereInput
   data: Prisma.XOR<Prisma.OrganisationUpdateManyMutationInput, Prisma.OrganisationUncheckedUpdateManyWithoutDomainesInput>
+}
+
+export type OrganisationCreateWithoutActivityLogsInput = {
+  id?: string
+  nom: string
+  sigle?: string | null
+  type?: string | null
+  anneeCreation?: number | null
+  agrementTechniqueDelivred: boolean
+  adresse?: string | null
+  commune?: string | null
+  international: boolean
+  typeRecepice?: string | null
+  rib?: string | null
+  recepice?: string | null
+  recepiceProvisoirOuDefinitif?: string | null
+  groupes?: number | null
+  adherents?: number | null
+  hommes?: number | null
+  femmes?: number | null
+  salaries?: number | null
+  benevoles?: number | null
+  cotisationMensuelle?: number | null
+  partenaires?: string | null
+  but?: string | null
+  publicCible?: string | null
+  validated?: boolean
+  activated?: boolean
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  responsable?: Prisma.ResponsableCreateNestedOneWithoutOrganisationsAsResponsableInput
+  secretaireGeneral?: Prisma.ResponsableCreateNestedOneWithoutOrganisationsAsSecretaireGeneralInput
+  tresorier?: Prisma.ResponsableCreateNestedOneWithoutOrganisationsInput
+  domaines?: Prisma.DomaineCreateNestedManyWithoutOrganisationsInput
+  departements?: Prisma.DepartementCreateNestedManyWithoutOrganisationsInput
+}
+
+export type OrganisationUncheckedCreateWithoutActivityLogsInput = {
+  id?: string
+  nom: string
+  sigle?: string | null
+  type?: string | null
+  anneeCreation?: number | null
+  agrementTechniqueDelivred: boolean
+  adresse?: string | null
+  commune?: string | null
+  international: boolean
+  typeRecepice?: string | null
+  rib?: string | null
+  recepice?: string | null
+  recepiceProvisoirOuDefinitif?: string | null
+  groupes?: number | null
+  adherents?: number | null
+  hommes?: number | null
+  femmes?: number | null
+  salaries?: number | null
+  benevoles?: number | null
+  cotisationMensuelle?: number | null
+  partenaires?: string | null
+  but?: string | null
+  publicCible?: string | null
+  responsableId?: string | null
+  secretaireGeneralId?: string | null
+  tresorierId?: string | null
+  validated?: boolean
+  activated?: boolean
+  updatedAt?: Date | string
+  createdAt?: Date | string
+  domaines?: Prisma.DomaineUncheckedCreateNestedManyWithoutOrganisationsInput
+  departements?: Prisma.DepartementUncheckedCreateNestedManyWithoutOrganisationsInput
+}
+
+export type OrganisationCreateOrConnectWithoutActivityLogsInput = {
+  where: Prisma.OrganisationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganisationCreateWithoutActivityLogsInput, Prisma.OrganisationUncheckedCreateWithoutActivityLogsInput>
+}
+
+export type OrganisationUpsertWithoutActivityLogsInput = {
+  update: Prisma.XOR<Prisma.OrganisationUpdateWithoutActivityLogsInput, Prisma.OrganisationUncheckedUpdateWithoutActivityLogsInput>
+  create: Prisma.XOR<Prisma.OrganisationCreateWithoutActivityLogsInput, Prisma.OrganisationUncheckedCreateWithoutActivityLogsInput>
+  where?: Prisma.OrganisationWhereInput
+}
+
+export type OrganisationUpdateToOneWithWhereWithoutActivityLogsInput = {
+  where?: Prisma.OrganisationWhereInput
+  data: Prisma.XOR<Prisma.OrganisationUpdateWithoutActivityLogsInput, Prisma.OrganisationUncheckedUpdateWithoutActivityLogsInput>
+}
+
+export type OrganisationUpdateWithoutActivityLogsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  nom?: Prisma.StringFieldUpdateOperationsInput | string
+  sigle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  anneeCreation?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  agrementTechniqueDelivred?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commune?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  international?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  typeRecepice?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rib?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recepice?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recepiceProvisoirOuDefinitif?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  groupes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  adherents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hommes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  femmes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salaries?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  benevoles?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  cotisationMensuelle?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  partenaires?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  but?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicCible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validated?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  responsable?: Prisma.ResponsableUpdateOneWithoutOrganisationsAsResponsableNestedInput
+  secretaireGeneral?: Prisma.ResponsableUpdateOneWithoutOrganisationsAsSecretaireGeneralNestedInput
+  tresorier?: Prisma.ResponsableUpdateOneWithoutOrganisationsNestedInput
+  domaines?: Prisma.DomaineUpdateManyWithoutOrganisationsNestedInput
+  departements?: Prisma.DepartementUpdateManyWithoutOrganisationsNestedInput
+}
+
+export type OrganisationUncheckedUpdateWithoutActivityLogsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  nom?: Prisma.StringFieldUpdateOperationsInput | string
+  sigle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  anneeCreation?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  agrementTechniqueDelivred?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  adresse?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commune?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  international?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  typeRecepice?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  rib?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recepice?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recepiceProvisoirOuDefinitif?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  groupes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  adherents?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  hommes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  femmes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  salaries?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  benevoles?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  cotisationMensuelle?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  partenaires?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  but?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publicCible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responsableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secretaireGeneralId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tresorierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validated?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  domaines?: Prisma.DomaineUncheckedUpdateManyWithoutOrganisationsNestedInput
+  departements?: Prisma.DepartementUncheckedUpdateManyWithoutOrganisationsNestedInput
 }
 
 export type OrganisationCreateWithoutDepartementsInput = {
@@ -1589,6 +1812,7 @@ export type OrganisationCreateWithoutDepartementsInput = {
   partenaires?: string | null
   but?: string | null
   publicCible?: string | null
+  validated?: boolean
   activated?: boolean
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -1596,6 +1820,7 @@ export type OrganisationCreateWithoutDepartementsInput = {
   secretaireGeneral?: Prisma.ResponsableCreateNestedOneWithoutOrganisationsAsSecretaireGeneralInput
   tresorier?: Prisma.ResponsableCreateNestedOneWithoutOrganisationsInput
   domaines?: Prisma.DomaineCreateNestedManyWithoutOrganisationsInput
+  activityLogs?: Prisma.ActivityLogCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutDepartementsInput = {
@@ -1625,10 +1850,12 @@ export type OrganisationUncheckedCreateWithoutDepartementsInput = {
   responsableId?: string | null
   secretaireGeneralId?: string | null
   tresorierId?: string | null
+  validated?: boolean
   activated?: boolean
   updatedAt?: Date | string
   createdAt?: Date | string
   domaines?: Prisma.DomaineUncheckedCreateNestedManyWithoutOrganisationsInput
+  activityLogs?: Prisma.ActivityLogUncheckedCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutDepartementsInput = {
@@ -1678,6 +1905,7 @@ export type OrganisationCreateManyResponsableInput = {
   publicCible?: string | null
   secretaireGeneralId?: string | null
   tresorierId?: string | null
+  validated?: boolean
   activated?: boolean
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -1709,6 +1937,7 @@ export type OrganisationCreateManySecretaireGeneralInput = {
   publicCible?: string | null
   responsableId?: string | null
   tresorierId?: string | null
+  validated?: boolean
   activated?: boolean
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -1740,6 +1969,7 @@ export type OrganisationCreateManyTresorierInput = {
   publicCible?: string | null
   responsableId?: string | null
   secretaireGeneralId?: string | null
+  validated?: boolean
   activated?: boolean
   updatedAt?: Date | string
   createdAt?: Date | string
@@ -1769,6 +1999,7 @@ export type OrganisationUpdateWithoutResponsableInput = {
   partenaires?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   but?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicCible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1776,6 +2007,7 @@ export type OrganisationUpdateWithoutResponsableInput = {
   tresorier?: Prisma.ResponsableUpdateOneWithoutOrganisationsNestedInput
   domaines?: Prisma.DomaineUpdateManyWithoutOrganisationsNestedInput
   departements?: Prisma.DepartementUpdateManyWithoutOrganisationsNestedInput
+  activityLogs?: Prisma.ActivityLogUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutResponsableInput = {
@@ -1804,11 +2036,13 @@ export type OrganisationUncheckedUpdateWithoutResponsableInput = {
   publicCible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secretaireGeneralId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tresorierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   domaines?: Prisma.DomaineUncheckedUpdateManyWithoutOrganisationsNestedInput
   departements?: Prisma.DepartementUncheckedUpdateManyWithoutOrganisationsNestedInput
+  activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateManyWithoutResponsableInput = {
@@ -1837,6 +2071,7 @@ export type OrganisationUncheckedUpdateManyWithoutResponsableInput = {
   publicCible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secretaireGeneralId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tresorierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1866,6 +2101,7 @@ export type OrganisationUpdateWithoutSecretaireGeneralInput = {
   partenaires?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   but?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicCible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1873,6 +2109,7 @@ export type OrganisationUpdateWithoutSecretaireGeneralInput = {
   tresorier?: Prisma.ResponsableUpdateOneWithoutOrganisationsNestedInput
   domaines?: Prisma.DomaineUpdateManyWithoutOrganisationsNestedInput
   departements?: Prisma.DepartementUpdateManyWithoutOrganisationsNestedInput
+  activityLogs?: Prisma.ActivityLogUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutSecretaireGeneralInput = {
@@ -1901,11 +2138,13 @@ export type OrganisationUncheckedUpdateWithoutSecretaireGeneralInput = {
   publicCible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tresorierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   domaines?: Prisma.DomaineUncheckedUpdateManyWithoutOrganisationsNestedInput
   departements?: Prisma.DepartementUncheckedUpdateManyWithoutOrganisationsNestedInput
+  activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateManyWithoutSecretaireGeneralInput = {
@@ -1934,6 +2173,7 @@ export type OrganisationUncheckedUpdateManyWithoutSecretaireGeneralInput = {
   publicCible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tresorierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1963,6 +2203,7 @@ export type OrganisationUpdateWithoutTresorierInput = {
   partenaires?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   but?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicCible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1970,6 +2211,7 @@ export type OrganisationUpdateWithoutTresorierInput = {
   secretaireGeneral?: Prisma.ResponsableUpdateOneWithoutOrganisationsAsSecretaireGeneralNestedInput
   domaines?: Prisma.DomaineUpdateManyWithoutOrganisationsNestedInput
   departements?: Prisma.DepartementUpdateManyWithoutOrganisationsNestedInput
+  activityLogs?: Prisma.ActivityLogUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutTresorierInput = {
@@ -1998,11 +2240,13 @@ export type OrganisationUncheckedUpdateWithoutTresorierInput = {
   publicCible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secretaireGeneralId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   domaines?: Prisma.DomaineUncheckedUpdateManyWithoutOrganisationsNestedInput
   departements?: Prisma.DepartementUncheckedUpdateManyWithoutOrganisationsNestedInput
+  activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateManyWithoutTresorierInput = {
@@ -2031,6 +2275,7 @@ export type OrganisationUncheckedUpdateManyWithoutTresorierInput = {
   publicCible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   responsableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secretaireGeneralId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2060,6 +2305,7 @@ export type OrganisationUpdateWithoutDomainesInput = {
   partenaires?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   but?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicCible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2067,6 +2313,7 @@ export type OrganisationUpdateWithoutDomainesInput = {
   secretaireGeneral?: Prisma.ResponsableUpdateOneWithoutOrganisationsAsSecretaireGeneralNestedInput
   tresorier?: Prisma.ResponsableUpdateOneWithoutOrganisationsNestedInput
   departements?: Prisma.DepartementUpdateManyWithoutOrganisationsNestedInput
+  activityLogs?: Prisma.ActivityLogUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutDomainesInput = {
@@ -2096,10 +2343,12 @@ export type OrganisationUncheckedUpdateWithoutDomainesInput = {
   responsableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secretaireGeneralId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tresorierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   departements?: Prisma.DepartementUncheckedUpdateManyWithoutOrganisationsNestedInput
+  activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateManyWithoutDomainesInput = {
@@ -2129,6 +2378,7 @@ export type OrganisationUncheckedUpdateManyWithoutDomainesInput = {
   responsableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secretaireGeneralId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tresorierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2158,6 +2408,7 @@ export type OrganisationUpdateWithoutDepartementsInput = {
   partenaires?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   but?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   publicCible?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2165,6 +2416,7 @@ export type OrganisationUpdateWithoutDepartementsInput = {
   secretaireGeneral?: Prisma.ResponsableUpdateOneWithoutOrganisationsAsSecretaireGeneralNestedInput
   tresorier?: Prisma.ResponsableUpdateOneWithoutOrganisationsNestedInput
   domaines?: Prisma.DomaineUpdateManyWithoutOrganisationsNestedInput
+  activityLogs?: Prisma.ActivityLogUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutDepartementsInput = {
@@ -2194,10 +2446,12 @@ export type OrganisationUncheckedUpdateWithoutDepartementsInput = {
   responsableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secretaireGeneralId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tresorierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   domaines?: Prisma.DomaineUncheckedUpdateManyWithoutOrganisationsNestedInput
+  activityLogs?: Prisma.ActivityLogUncheckedUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateManyWithoutDepartementsInput = {
@@ -2227,6 +2481,7 @@ export type OrganisationUncheckedUpdateManyWithoutDepartementsInput = {
   responsableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   secretaireGeneralId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tresorierId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  validated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   activated?: Prisma.BoolFieldUpdateOperationsInput | boolean
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2240,11 +2495,13 @@ export type OrganisationUncheckedUpdateManyWithoutDepartementsInput = {
 export type OrganisationCountOutputType = {
   domaines: number
   departements: number
+  activityLogs: number
 }
 
 export type OrganisationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   domaines?: boolean | OrganisationCountOutputTypeCountDomainesArgs
   departements?: boolean | OrganisationCountOutputTypeCountDepartementsArgs
+  activityLogs?: boolean | OrganisationCountOutputTypeCountActivityLogsArgs
 }
 
 /**
@@ -2269,6 +2526,13 @@ export type OrganisationCountOutputTypeCountDomainesArgs<ExtArgs extends runtime
  */
 export type OrganisationCountOutputTypeCountDepartementsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.DepartementWhereInput
+}
+
+/**
+ * OrganisationCountOutputType without action
+ */
+export type OrganisationCountOutputTypeCountActivityLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ActivityLogWhereInput
 }
 
 
@@ -2299,6 +2563,7 @@ export type OrganisationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   responsableId?: boolean
   secretaireGeneralId?: boolean
   tresorierId?: boolean
+  validated?: boolean
   activated?: boolean
   updatedAt?: boolean
   createdAt?: boolean
@@ -2307,6 +2572,7 @@ export type OrganisationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   tresorier?: boolean | Prisma.Organisation$tresorierArgs<ExtArgs>
   domaines?: boolean | Prisma.Organisation$domainesArgs<ExtArgs>
   departements?: boolean | Prisma.Organisation$departementsArgs<ExtArgs>
+  activityLogs?: boolean | Prisma.Organisation$activityLogsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganisationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["organisation"]>
 
@@ -2337,6 +2603,7 @@ export type OrganisationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   responsableId?: boolean
   secretaireGeneralId?: boolean
   tresorierId?: boolean
+  validated?: boolean
   activated?: boolean
   updatedAt?: boolean
   createdAt?: boolean
@@ -2372,6 +2639,7 @@ export type OrganisationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   responsableId?: boolean
   secretaireGeneralId?: boolean
   tresorierId?: boolean
+  validated?: boolean
   activated?: boolean
   updatedAt?: boolean
   createdAt?: boolean
@@ -2407,18 +2675,20 @@ export type OrganisationSelectScalar = {
   responsableId?: boolean
   secretaireGeneralId?: boolean
   tresorierId?: boolean
+  validated?: boolean
   activated?: boolean
   updatedAt?: boolean
   createdAt?: boolean
 }
 
-export type OrganisationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nom" | "sigle" | "type" | "anneeCreation" | "agrementTechniqueDelivred" | "adresse" | "commune" | "international" | "typeRecepice" | "rib" | "recepice" | "recepiceProvisoirOuDefinitif" | "groupes" | "adherents" | "hommes" | "femmes" | "salaries" | "benevoles" | "cotisationMensuelle" | "partenaires" | "but" | "publicCible" | "responsableId" | "secretaireGeneralId" | "tresorierId" | "activated" | "updatedAt" | "createdAt", ExtArgs["result"]["organisation"]>
+export type OrganisationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nom" | "sigle" | "type" | "anneeCreation" | "agrementTechniqueDelivred" | "adresse" | "commune" | "international" | "typeRecepice" | "rib" | "recepice" | "recepiceProvisoirOuDefinitif" | "groupes" | "adherents" | "hommes" | "femmes" | "salaries" | "benevoles" | "cotisationMensuelle" | "partenaires" | "but" | "publicCible" | "responsableId" | "secretaireGeneralId" | "tresorierId" | "validated" | "activated" | "updatedAt" | "createdAt", ExtArgs["result"]["organisation"]>
 export type OrganisationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   responsable?: boolean | Prisma.Organisation$responsableArgs<ExtArgs>
   secretaireGeneral?: boolean | Prisma.Organisation$secretaireGeneralArgs<ExtArgs>
   tresorier?: boolean | Prisma.Organisation$tresorierArgs<ExtArgs>
   domaines?: boolean | Prisma.Organisation$domainesArgs<ExtArgs>
   departements?: boolean | Prisma.Organisation$departementsArgs<ExtArgs>
+  activityLogs?: boolean | Prisma.Organisation$activityLogsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganisationCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OrganisationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2440,6 +2710,7 @@ export type $OrganisationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     tresorier: Prisma.$ResponsablePayload<ExtArgs> | null
     domaines: Prisma.$DomainePayload<ExtArgs>[]
     departements: Prisma.$DepartementPayload<ExtArgs>[]
+    activityLogs: Prisma.$ActivityLogPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2468,6 +2739,7 @@ export type $OrganisationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     responsableId: string | null
     secretaireGeneralId: string | null
     tresorierId: string | null
+    validated: boolean
     activated: boolean
     updatedAt: Date
     createdAt: Date
@@ -2870,6 +3142,7 @@ export interface Prisma__OrganisationClient<T, Null = never, ExtArgs extends run
   tresorier<T extends Prisma.Organisation$tresorierArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$tresorierArgs<ExtArgs>>): Prisma.Prisma__ResponsableClient<runtime.Types.Result.GetResult<Prisma.$ResponsablePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   domaines<T extends Prisma.Organisation$domainesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$domainesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DomainePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   departements<T extends Prisma.Organisation$departementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$departementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DepartementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  activityLogs<T extends Prisma.Organisation$activityLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$activityLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ActivityLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2925,6 +3198,7 @@ export interface OrganisationFieldRefs {
   readonly responsableId: Prisma.FieldRef<"Organisation", 'String'>
   readonly secretaireGeneralId: Prisma.FieldRef<"Organisation", 'String'>
   readonly tresorierId: Prisma.FieldRef<"Organisation", 'String'>
+  readonly validated: Prisma.FieldRef<"Organisation", 'Boolean'>
   readonly activated: Prisma.FieldRef<"Organisation", 'Boolean'>
   readonly updatedAt: Prisma.FieldRef<"Organisation", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"Organisation", 'DateTime'>
@@ -3431,6 +3705,30 @@ export type Organisation$departementsArgs<ExtArgs extends runtime.Types.Extensio
   take?: number
   skip?: number
   distinct?: Prisma.DepartementScalarFieldEnum | Prisma.DepartementScalarFieldEnum[]
+}
+
+/**
+ * Organisation.activityLogs
+ */
+export type Organisation$activityLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ActivityLog
+   */
+  select?: Prisma.ActivityLogSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ActivityLog
+   */
+  omit?: Prisma.ActivityLogOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ActivityLogInclude<ExtArgs> | null
+  where?: Prisma.ActivityLogWhereInput
+  orderBy?: Prisma.ActivityLogOrderByWithRelationInput | Prisma.ActivityLogOrderByWithRelationInput[]
+  cursor?: Prisma.ActivityLogWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ActivityLogScalarFieldEnum | Prisma.ActivityLogScalarFieldEnum[]
 }
 
 /**

@@ -13,20 +13,24 @@ import {
   BadRequestException,
   UseInterceptors,
   Query,
+  Req,
 } from '@nestjs/common';
 import { DocumentKey, OfficerRole, OrganisationService } from './organisation.service';
 import { flattenValidationErrors } from 'src/common/validation-errors';
 import { ResponsableDto } from './dto/responsable.dto';
 import { ApiBody, ApiConsumes, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { extname } from 'path';
+import { extname, join } from 'path';
+import { uploadsRoot } from 'src/common/uploads';
 import { diskStorage } from 'multer';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { UpdateOrganisationDto } from './dto/update-organisation.dto';
 import { CreateOrganisationDto, PublicCreateOrganisationDto } from './dto/create-organisation.dto';
 import { ActivateOrganisationDto } from './dto/activate-organisation.dto';
+import { OrganisationCommentDto, OrganisationVisibilityDto } from './dto/organisation-comment.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from 'src/auth/guards/permissions.guard';
 import { Permissions } from '../auth/guards/permissions.decorator';
+import { Public } from '../auth/guards/public.decorator';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { Throttle } from '@nestjs/throttler';
@@ -45,6 +49,7 @@ export class OrganisationController {
     type: PublicCreateOrganisationDto,
   })
   @Throttle({ default: { limit: 8, ttl: 60000 } })
+  @Public()
   @Post('inscription')
   @UseInterceptors(
     FileFieldsInterceptor(
@@ -57,7 +62,7 @@ export class OrganisationController {
       ],
       {
         storage: diskStorage({
-          destination: './uploads/organisations/public',
+          destination: join(uploadsRoot(), 'organisations', 'public'),
           filename: (req, file, callback) => {
             const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
             const ext = extname(file.originalname);
@@ -147,6 +152,7 @@ export class OrganisationController {
     @Param('id') id: string,
     @Param('role') role: OfficerRole,
     @Body() body: ResponsableDto,
+    @Req() req,
   ) {
     if (!['responsable', 'secretaireGeneral', 'tresorier'].includes(role)) {
       throw new BadRequestException({
@@ -154,7 +160,7 @@ export class OrganisationController {
         errors: { role: 'Le responsable indiqué est invalide' },
       });
     }
-    return this.organisationService.updateOfficer(id, role, body);
+    return this.organisationService.updateOfficer(id, role, body, req.user?.id);
   }
 
   @ApiOperation({ summary: 'Ajouter, remplacer ou retirer des documents' })
@@ -173,7 +179,7 @@ export class OrganisationController {
       ],
       {
         storage: diskStorage({
-          destination: './uploads/organisations/public',
+          destination: join(uploadsRoot(), 'organisations', 'public'),
           filename: (req, file, callback) => {
             const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
             const ext = extname(file.originalname);
@@ -200,6 +206,7 @@ export class OrganisationController {
   async updateDocuments(
     @Param('id') id: string,
     @Body('remove') removeRaw: string,
+    @Req() req,
     @UploadedFiles()
     files: {
       recepice?: Express.Multer.File[];
@@ -221,18 +228,19 @@ export class OrganisationController {
       .map((item) => item.trim())
       .filter((item): item is DocumentKey => allowed.includes(item as DocumentKey));
 
-    return this.organisationService.updateDocuments(id, files || {}, remove);
+    return this.organisationService.updateDocuments(id, files || {}, remove, req.user?.id);
   }
 
   @ApiOperation({ summary: "Mise à jour d'une organisation" })
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Permissions('UPDATE_ORGANISATION')
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateOrganisationDto: UpdateOrganisationDto) {
-    return this.organisationService.update(id, updateOrganisationDto);
+  async update(@Param('id') id: string, @Body() updateOrganisationDto: UpdateOrganisationDto, @Req() req) {
+    return this.organisationService.update(id, updateOrganisationDto, req.user?.id);
   }
 
   @ApiOperation({ summary: "Nombre d'associations par département pour une province" })
+  @Public()
   @HttpCode(HttpStatus.OK)
   @Get('stats/departements/:provinceAbreviation')
   async getOrganisationsCountByDepartement(
@@ -248,6 +256,7 @@ export class OrganisationController {
   @ApiOperation({ summary: "Recherche d'associations par département, province ou nom" })
   @ApiQuery({ name: 'searchTerm', required: true })
   @ApiQuery({ name: 'domaineId', required: false })
+  @Public()
   @HttpCode(HttpStatus.OK)
   @Get('recherche/departements')
   async searchOrganisationsByDepartement(
@@ -258,6 +267,7 @@ export class OrganisationController {
   }
 
   @ApiOperation({ summary: 'Recherche textuelle publique (nom, sigle, commune, but)' })
+  @Public()
   @HttpCode(HttpStatus.OK)
   @Get('recherche/texte')
   async searchPublicText(@Query('q') q: string, @Query('domaineId') domaineId?: string) {
@@ -265,6 +275,7 @@ export class OrganisationController {
   }
 
   @ApiOperation({ summary: 'Suggestions d’associations pour l’autocomplétion publique' })
+  @Public()
   @HttpCode(HttpStatus.OK)
   @Get('recherche/suggestions')
   suggestPublic(@Query('q') q: string) {
@@ -272,6 +283,7 @@ export class OrganisationController {
   }
 
   @ApiOperation({ summary: "Nombre d'associations par province" })
+  @Public()
   @HttpCode(HttpStatus.OK)
   @Get('stats/provinces')
   async getOrganisationsCountByProvince(@Query('domaineId') domaineId?: string) {
@@ -279,6 +291,7 @@ export class OrganisationController {
   }
 
   @ApiOperation({ summary: 'Organisations validées (données publiques)' })
+  @Public()
   @HttpCode(HttpStatus.OK)
   @Get()
   findAll() {
@@ -286,6 +299,7 @@ export class OrganisationController {
   }
 
   @ApiOperation({ summary: 'Recherche publique des organisations validées' })
+  @Public()
   @HttpCode(HttpStatus.OK)
   @Get('search')
   search(
@@ -305,7 +319,8 @@ export class OrganisationController {
   searchPrivate(
     @Query('page') page = 1,
     @Query('limit') limit = 10,
-    @Query('activated') activated = 'true',
+    @Query('activated') activated?: string,
+    @Query('validated') validated?: string,
     @Query('searchQuery') searchQuery = '',
   ) {
     return this.organisationService.search(
@@ -314,10 +329,12 @@ export class OrganisationController {
       activated,
       searchQuery,
       false,
+      validated,
     );
   }
 
   @ApiOperation({ summary: 'Organisations par domaine (validées)' })
+  @Public()
   @HttpCode(HttpStatus.OK)
   @Get('domaines/:id')
   findByDomaines(@Param('id') id: string) {
@@ -325,10 +342,20 @@ export class OrganisationController {
   }
 
   @ApiOperation({ summary: 'Organisations par province (validées)' })
+  @Public()
   @HttpCode(HttpStatus.OK)
   @Get('provinces/:id')
   findByProvinces(@Param('id') id: string) {
     return this.organisationService.findByProvinceId(id, true);
+  }
+
+  @ApiOperation({ summary: 'Historique métier d’une association' })
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('READ_ORGANISATION')
+  @HttpCode(HttpStatus.OK)
+  @Get('admin/:id/activity')
+  getActivity(@Param('id') id: string) {
+    return this.organisationService.getActivity(id);
   }
 
   @ApiOperation({ summary: "Détail d'une organisation (admin)" })
@@ -341,6 +368,7 @@ export class OrganisationController {
   }
 
   @ApiOperation({ summary: "Détail public d'une organisation validée" })
+  @Public()
   @HttpCode(HttpStatus.OK)
   @Get(':id')
   findOne(@Param('id') id: string) {
@@ -350,16 +378,43 @@ export class OrganisationController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Permissions('DELETE_ORGANISATION')
-  async remove(@Param('id') id: string) {
-    return this.organisationService.remove(id);
+  async remove(@Param('id') id: string, @Req() req) {
+    return this.organisationService.remove(id, req.user?.id);
   }
 
-  @ApiOperation({ summary: "Valider, publier ou retirer une organisation" })
+  @ApiOperation({ summary: 'Valider une inscription' })
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('VALIDATE_ORGANISATION')
+  @HttpCode(HttpStatus.OK)
+  @Patch(':id/validate')
+  validate(@Param('id') id: string, @Body() body: OrganisationCommentDto, @Req() req) {
+    return this.organisationService.validateOrganisation(id, req.user.id, body?.commentaire);
+  }
+
+  @ApiOperation({ summary: 'Rendre une association visible' })
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('PUBLISH_ORGANISATION')
+  @HttpCode(HttpStatus.OK)
+  @Patch(':id/publish')
+  publish(@Param('id') id: string, @Body() body: OrganisationVisibilityDto, @Req() req) {
+    return this.organisationService.publishOrganisation(id, req.user.id, body.commentaire);
+  }
+
+  @ApiOperation({ summary: 'Retirer une association de la visibilité publique' })
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('UNPUBLISH_ORGANISATION')
+  @HttpCode(HttpStatus.OK)
+  @Patch(':id/unpublish')
+  unpublish(@Param('id') id: string, @Body() body: OrganisationVisibilityDto, @Req() req) {
+    return this.organisationService.unpublishOrganisation(id, req.user.id, body.commentaire);
+  }
+
+  @ApiOperation({ summary: 'Valider, publier ou retirer une organisation' })
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Permissions('UPDATE_ORGANISATION')
   @HttpCode(HttpStatus.OK)
   @Patch('activate/:id')
-  activate(@Param('id') id: string, @Body() body: ActivateOrganisationDto) {
-    return this.organisationService.activeOrganisation(id, body?.activated);
+  activate(@Param('id') id: string, @Body() body: ActivateOrganisationDto & OrganisationCommentDto, @Req() req) {
+    return this.organisationService.activeOrganisation(id, body?.activated, req.user?.id, body?.commentaire);
   }
 }

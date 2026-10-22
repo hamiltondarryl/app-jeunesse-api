@@ -7,6 +7,7 @@ import { SearchDepartmentDto } from 'src/departement/dto/pagination.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from 'src/auth/guards/permissions.guard';
 import { Permissions } from 'src/auth/guards/permissions.decorator';
+import { Public } from 'src/auth/guards/public.decorator';
 
 
 @ApiTags("Gestion des provinces")
@@ -23,18 +24,22 @@ export class ProvinceController {
   }
 
   @ApiOperation({ summary: "Récuperation des provinces" })
+  @Public()
   @Get()
   async findAll() {
     return await this.provinceService.findAll();
   }
 
   @ApiOperation({ summary: "Récuperation des provinces avec filtre" })
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions('LIST_PROVINCE')
   @Get('search')
   async search(@Query() searchDepartmentDto: SearchDepartmentDto) {
     return await this.provinceService.search(searchDepartmentDto);
   }
 
   @ApiOperation({ summary: "Récuperation d'un province" })
+  @Public()
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return await this.provinceService.findOne(id);
